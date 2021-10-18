@@ -1,0 +1,15 @@
+[package]
+name = "graphviz-rust"
+description = "The library provides the basic functionality to find the set of the data according to the filtering query."
+version = "0.1.0"
+edition = "2021"
+authors = ["BorisZhguchev <zhguchev@gmail.com>"]
+license-file = "LICENSE"
+homepage = "https://github.com/besok/graphviz-rust"
+repository = "https://github.com/besok/graphviz-rust"
+readme = "README.md"
+keywords = ["graph", "graphviz","dotfile","dot","visualize"]
+categories = ["libraries"]
+
+[dependencies]
+[dev-dependencies]
