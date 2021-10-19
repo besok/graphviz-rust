@@ -1,3 +1,6 @@
+mod graph;
+mod parser;
+
 #[cfg(test)]
 mod tests {
     #[test]
