@@ -1,5 +1,10 @@
+#![feature(box_syntax)]
+
 mod graph;
 mod parser;
+#[macro_use]
+extern crate pest_derive;
+extern crate pest;
 
 #[cfg(test)]
 mod tests {

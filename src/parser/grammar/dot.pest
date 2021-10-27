@@ -1,0 +1,39 @@
+WHITESPACE = _{ " " | "\t" | "\r\n" | "\n"}
+word = _{ ('a'..'z' | 'A'..'Z')+ }
+arr = _{"->" | "--"}
+char = _{
+    !("\"" | "\\" | "\'") ~ ANY
+    | "\\" ~ ("\"" | "\'" |  "\\" | "/" | "b" | "f" | "n" | "r" | "t")
+    | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
+}
+
+inner = ${ char* }
+number = ${"-"? ~ (("0" | ASCII_NONZERO_DIGIT ~ ASCII_DIGIT*) ~ ("." ~ ASCII_DIGIT+)? | ("." ~ ASCII_DIGIT+))}
+string_qt = ${ "\"" ~ inner ~ "\"" }
+html = ${"<<" ~ (word | WHITESPACE | number | string_qt | "/" | "=" | "<" | (">" ~ !">"))+ ~ ">>"}
+plain = ${(word ~ (word | ASCII_DIGIT | "_")*) | number}
+
+
+compass = ${"n" | "ne" | "e" | "se" | "s" | "sw" | "w" | "nw" | "c" | "_"}
+
+port = {(":" ~ compass) | (":" ~ id ~ (":" ~ compass)?) }
+id = {plain | html | string_qt}
+node_id = {id ~ port?}
+attr = {bare_attr ~ (";" |",")?}
+attr_list = {("[" ~ attr* ~ "]")+}
+node = {node_id ~ attr_list*}
+
+attr_mark = {"graph" | "node" | "edge"}
+attr_stmt = {attr_mark ~ attr_list}
+bare_attr = {id ~ "=" ~ id}
+edge_tail = {arr ~ vertex}
+edge = {vertex ~ edge_tail+}
+edge_stmt = {edge ~ attr_list?}
+vertex = { subgraph | node_id }
+subgraph = {"subgraph" ~ id? ~ body}
+stmt = {attr_stmt | subgraph | bare_attr | edge_stmt | node }
+body = {"{" ~ (stmt ~ ";"?)* ~"}"}
+strict = {"strict"}
+graph_ty = {"graph" | "digraph"}
+graph = {strict? ~ graph_ty ~ id? ~ body}
+file = {SOI ~ graph ~ EOI }
