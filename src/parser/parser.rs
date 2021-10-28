@@ -3,7 +3,7 @@ use std::iter::Map;
 use pest::error::Error;
 use pest::iterators::{Pair, Pairs};
 use pest::RuleType;
-use crate::parser::{Attribute, Edge, EdgeTy, Graph, GraphAttributes, Id, Node, Port, Stmt, Subgraph, Vertex};
+use crate::parser::{Attribute, Edge, EdgeTy, Graph, GraphAttributes, Id, Node, NodeId, Port, Stmt, Subgraph, Vertex};
 use crate::pest::Parser;
 
 #[derive(Parser)]
@@ -61,7 +61,7 @@ fn process_port(port: Pair<Rule>) -> Port {
         match r.as_rule() {
             Rule::compass => com = Some(r.as_str().to_string()),
             Rule::id => {
-                id = Some(process_id(r)).map(|id| box id);
+                id = Some(process_id(r)).map(|id| id);
                 if let Some(r) = port_r.next() {
                     com = Some(r.as_str().to_string());
                 }
@@ -74,13 +74,13 @@ fn process_port(port: Pair<Rule>) -> Port {
     }
 }
 
-fn process_node_id(rule: Pair<Rule>) -> Id {
+fn process_node_id(rule: Pair<Rule>) -> NodeId {
     let mut node_id = rule.into_inner();
     let id = node_id.next().map(process_id).unwrap();
     if let Some(r) = node_id.next() {
-        Id::IdwPort(box id, Some(process_port(r)))
+        NodeId(id, Some(process_port(r)))
     } else {
-        Id::IdwPort(box id, None)
+        NodeId(id, None)
     }
 }
 
@@ -186,7 +186,6 @@ fn process_graph(rule: Pair<Rule>) -> Graph {
     };
 
     let id = match graph_r.peek().map(|r| {
-        println!("{:?}", r);
         r.as_rule()
     }) {
         Some(Rule::id) => process_id(graph_r.next().unwrap()),
@@ -203,12 +202,11 @@ fn process_graph(rule: Pair<Rule>) -> Graph {
 
 #[cfg(test)]
 mod test {
-    #[macro_use]
-    use crate::{id, port};
+    use crate::{id, port, a_attr, node, stmt, subgraph, graph, edge };
     use pest::error::Error;
     use pest::iterators::{Pair, Pairs};
     use pest::RuleType;
-    use crate::parser::{Attribute, Edge, EdgeTy, GraphAttributes, Id, Node, Port, Subgraph};
+    use crate::parser::{Attribute, Edge, EdgeTy, Graph, GraphAttributes, Id, Node, NodeId, Port, Subgraph};
 
 
     use crate::parser::parser::{do_parse, DotParser, down, parse, process_attr, process_attr_list, process_attr_stmt, process_edge, process_edge_stmt, process_id, process_node, process_node_id, process_stmt, process_vertex, Stmt, Vertex};
@@ -229,28 +227,28 @@ mod test {
         assert_eq!(result, id!("abc_a"));
 
         let result = process_id(_parse("\"ab\\\"c\"", Rule::id));
-        assert_eq!(result, id!(|"\"ab\\\"c\""));
+        assert_eq!(result, id!(esc "\"ab\\\"c\""));
 
         let result = process_id(_parse(r#"<<IMG SCALE="FAL" SRC="value" /></B>abc </B>>"#, Rule::id));
-        assert_eq!(result, id!(<<r#"IMG SCALE="FAL" SRC="value" /></B>abc </B"#,>>));
+        assert_eq!(result, id!(html r#"<<IMG SCALE="FAL" SRC="value" /></B>abc </B>>"#));
     }
 
     #[test]
     fn attr_test() {
         let result = process_attr(_parse("a=1", Rule::attr));
-        assert_eq!(result, Attribute::Arbitrary(id!("a"), id!("1")));
+        assert_eq!(result, a_attr!("a","1"));
         let result = process_attr(_parse("a = 1 , ;", Rule::attr));
-        assert_eq!(result, Attribute::Arbitrary(id!("a"), id!("1")));
+        assert_eq!(result, a_attr!("a","1"));
     }
 
     #[test]
     fn attr_list_test() {
         let result = process_attr_list(_parse("[a=1 , b=c ; d=<<abc>> e=e]", Rule::attr_list));
         let expect = vec![
-            Attribute::Arbitrary(id!("a"), id!("1")),
-            Attribute::Arbitrary(id!("b"), id!("c")),
-            Attribute::Arbitrary(id!("d"), id!(<<"abc",>>)),
-            Attribute::Arbitrary(id!("e"), id!("e")),
+            a_attr!("a", "1"),
+            a_attr!("b", "c"),
+            a_attr!("d", html "<<abc>>"),
+            a_attr!("e", "e"),
         ];
         assert_eq!(result, expect);
         let result = process_attr_list(_parse("[a=1 , b=c] [ d=<<abc>> e=e]", Rule::attr_list));
@@ -260,49 +258,48 @@ mod test {
     #[test]
     fn node_id_test() {
         let result = process_node_id(_parse("abc:n", Rule::node_id));
-        let expect = id!(id!("abc"), port!(None, Some("n".to_string())));
+        let expect = NodeId(id!("abc"), port!(None, Some("n".to_string())));
         assert_eq!(result, expect);
 
         let result = process_node_id(_parse("abc:abc", Rule::node_id));
-        let expect = id!(id!("abc"),port!(Some(box Id::Plain("abc".to_string())), None));
+        let expect = NodeId(id!("abc"), port!(Some(Id::Plain("abc".to_string())), None));
         assert_eq!(result, expect);
 
         let result = process_node_id(_parse("abc:abc:n", Rule::node_id));
-        let expect = id!(id!("abc"),port!(Some(box Id::Plain("abc".to_string())), Some("n".to_string())));
+        let expect = NodeId(id!("abc"), port!(Some(Id::Plain("abc".to_string())), Some("n".to_string())));
         assert_eq!(result, expect);
     }
 
     #[test]
     fn node_test() {
         let result = process_node(_parse("abc:n[a=1 , b=c ; d=<<abc>> e=e]", Rule::node));
+        let p = port!(None, Some("n".to_string()));
         let attributes = vec![
-            Attribute::Arbitrary(id!("a"), id!("1")),
-            Attribute::Arbitrary(id!("b"), id!("c")),
-            Attribute::Arbitrary(id!("d"), id!(<<"abc",>>)),
-            Attribute::Arbitrary(id!("e"), id!("e")),
+            a_attr!("a", "1"),
+            a_attr!("b", "c"),
+            a_attr!("d", html "<<abc>>"),
+            a_attr!("e", "e"),
         ];
-
-        let id = id!(id!("abc"),port!(None, Some("n".to_string())));
-        assert_eq!(result, Node::new(id, attributes));
+        assert_eq!(result, node!("abc" => p, attributes));
     }
 
     #[test]
     fn attr_stmts_test() {
         let result = process_attr_stmt(_parse("node [a=1 , b=c ; d=<<abc>> e=e]", Rule::attr_stmt));
         let attributes = vec![
-            Attribute::Arbitrary(id!("a"), id!("1")),
-            Attribute::Arbitrary(id!("b"), id!("c")),
-            Attribute::Arbitrary(id!("d"), id!(<<"abc",>>)),
-            Attribute::Arbitrary(id!("e"), id!("e")),
+            a_attr!("a", "1"),
+            a_attr!("b", "c"),
+            a_attr!("d", html "<<abc>>"),
+            a_attr!("e", "e"),
         ];
         assert_eq!(result, GraphAttributes::Node(attributes));
 
         let result = process_attr_stmt(_parse("graph [a=1 , b=c ; d=<<abc>> e=e]", Rule::attr_stmt));
         let attributes = vec![
-            Attribute::Arbitrary(id!("a"), id!("1")),
-            Attribute::Arbitrary(id!("b"), id!("c")),
-            Attribute::Arbitrary(id!("d"), id!(<<"abc",>>)),
-            Attribute::Arbitrary(id!("e"), id!("e")),
+            a_attr!("a", "1"),
+            a_attr!("b", "c"),
+            a_attr!("d", html "<<abc>>"),
+            a_attr!("e", "e"),
         ];
         assert_eq!(result, GraphAttributes::Graph(attributes));
     }
@@ -310,16 +307,16 @@ mod test {
     #[test]
     fn vertex_test() {
         let result = process_vertex(_parse("node", Rule::vertex));
-        assert_eq!(result, Vertex::N(Node::new(id!(id!("node"), None), vec![])));
+        assert_eq!(result, Vertex::N(node!("node")));
     }
 
     #[test]
     fn edge_test() {
         let result = process_edge(_parse("node -> node1 -> node2", Rule::edge));
         let expected = vec![
-            Vertex::N(Node::new(id!(id!("node"), None), vec![])),
-            Vertex::N(Node::new(id!(id!("node1"), None), vec![])),
-            Vertex::N(Node::new(id!(id!("node2"), None), vec![])),
+            Vertex::N(node!("node")),
+            Vertex::N(node!("node1")),
+            Vertex::N(node!("node2")),
         ];
         assert_eq!(result, expected);
     }
@@ -327,64 +324,38 @@ mod test {
     #[test]
     fn edge_stmt_test() {
         let result = process_edge_stmt(_parse("node -> node1 -> node2[a=2]", Rule::edge_stmt));
-        let expected_edges = vec![
-            Vertex::N(Node::new(id!(id!("node"), None), vec![])),
-            Vertex::N(Node::new(id!(id!("node1"), None), vec![])),
-            Vertex::N(Node::new(id!(id!("node2"), None), vec![])),
-        ];
-        let expected_attr = vec![Attribute::Arbitrary(id!("a"), id!("2"))];
-        let edge = Edge { ty: EdgeTy::Chain(expected_edges), attributes: expected_attr };
-        assert_eq!(result, edge);
+        assert_eq!(result, edge!(node!("node")=> node!("node1")=>node!("node2"); a_attr!("a","2")));
 
         let result = process_edge_stmt(_parse("node -> subgraph sg{a -> b}[a=2]", Rule::edge_stmt));
 
-        let l = Vertex::N(Node::new(id!(id!("node"), None), vec![]));
-        let r = Vertex::S(Subgraph {
-            id: id!("sg"),
-            stmts: vec![Stmt::Edge(Edge {
-                ty: EdgeTy::Pair(
-                    Vertex::N(Node::new(id!(id!("a"), None), vec![])),
-                    Vertex::N(Node::new(id!(id!("b"), None), vec![])),
-                ),
-                attributes: vec![],
-            })],
-        });
-        let expected_attr = vec![Attribute::Arbitrary(id!("a"), id!("2")), ];
-
-        let edge = Edge { ty: EdgeTy::Pair(l, r), attributes: expected_attr };
-        assert_eq!(result, edge);
+        assert_eq!(result, edge!(
+            node!("node") => subgraph!("sg";stmt!(edge!(node!("a") => node!("b"))));
+            a_attr!("a","2")
+        ));
     }
 
     #[test]
     fn stmt_test() {
         let result = process_stmt(_parse("a=b", Rule::stmt));
-        let ba = Attribute::Arbitrary(Id::Plain("a".to_string()), Id::Plain("b".to_string()));
-        assert_eq!(result, Stmt::Attribute(ba));
+        assert_eq!(result, stmt!(a_attr!("a","b")));
 
         let result = process_stmt(_parse("node [a=1 , b=c ; d=<<abc>> e=e]", Rule::stmt));
         let attributes = vec![
-            Attribute::Arbitrary(id!("a"), id!("1")),
-            Attribute::Arbitrary(id!("b"), id!("c")),
-            Attribute::Arbitrary(id!("d"), id!(<<"abc",>>)),
-            Attribute::Arbitrary(id!("e"), id!("e")),
+            a_attr!("a", "1"),
+            a_attr!("b", "c"),
+            a_attr!("d", html "<<abc>>"),
+            a_attr!("e", "e"),
         ];
-        assert_eq!(result, Stmt::GAttribute(GraphAttributes::Node(attributes)));
+        assert_eq!(result, stmt!(GraphAttributes::Node(attributes)));
 
         let result = process_stmt(_parse("node -> node1 -> node2[a=2]", Rule::stmt));
-        let expected_edges = vec![
-            Vertex::N(Node::new(id!(id!("node"), None), vec![])),
-            Vertex::N(Node::new(id!(id!("node1"), None), vec![])),
-            Vertex::N(Node::new(id!(id!("node2"), None), vec![])),
-        ];
-        let expected_attr = vec![Attribute::Arbitrary(id!("a"), id!("2")), ];
 
-        let edge = Edge { ty: EdgeTy::Chain(expected_edges), attributes: expected_attr };
-        assert_eq!(result, Stmt::Edge(edge));
+        assert_eq!(result, stmt!( edge!(node!("node")=> node!("node1")=>node!("node2"); a_attr!("a","2"))));
     }
 
     #[test]
     fn graph_test() {
-        let graph = parse(r#"
+        let g:Graph = parse(r#"
         strict digraph t {
             aa[color=green]
             subgraph v {
@@ -398,6 +369,19 @@ mod test {
         }
         "#).unwrap();
 
-        println!("{:?}", graph)
+        assert_eq!(
+            g,
+            graph! (strict di id!("t");
+              node!("aa";a_attr!("color","green")),
+              subgraph!("v";
+                node!("aa"; a_attr!("shape","square")),
+                subgraph!("vv"; edge!(node!("a2") => node!("b2"))),
+                node!("aaa";a_attr!("color","red")),
+                edge!(node!("aaa") => node!("bbb"))
+                ),
+              edge!(node!("aa") => node!("be") => subgraph!("v"; edge!(node!("d") => node!("aaa")))),
+              edge!(node!("aa") => node!("aaa") => node!("v"))
+            )
+        )
     }
 }

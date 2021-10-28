@@ -1,19 +1,32 @@
+use std::fmt::{Display, Formatter};
 use std::hash::{Hash, Hasher};
 
 mod parser;
 mod macros;
 
 #[derive(Debug, PartialEq, Clone, Eq)]
- struct Port(pub Option<Box<Id>>, pub Option<String>);
+ struct Port(pub Option<Id>, pub Option<String>);
 
 #[derive(Debug, Clone, Eq)]
  enum Id {
     Html(String),
     Escaped(String),
     Plain(String),
-    IdwPort(Box<Id>, Option<Port>),
     Anonymous(String),
 }
+impl Display for Id{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self{
+            Id::Html(v) => f.write_str(format!("html {}",v).as_str()),
+            Id::Escaped(v) => f.write_str(format!("esc {}",v).as_str()),
+            Id::Plain(v) => f.write_str(format!("{}",v).as_str()),
+            Id::Anonymous(v) => f.write_str(format!("anon {}",v).as_str()),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Clone)]
+struct NodeId(Id,Option<Port>);
 
 impl Hash for Id {
     fn hash<H: Hasher>(&self, state: &mut H) {
@@ -30,20 +43,7 @@ impl Hash for Id {
                 state.write("plain".as_bytes());
                 state.write(s.as_bytes());
             }
-            Id::IdwPort(id, Some(Port(id_opt, str_opt))) => {
-                state.write("withPort".as_bytes());
-                id.hash(state);
-                if let Some(id_p) = id_opt {
-                    id_p.hash(state)
-                }
-                if let Some(str) = str_opt {
-                    state.write(str.as_bytes())
-                }
-            }
-            Id::IdwPort(id, None) => {
-                state.write("withPort".as_bytes());
-                id.hash(state);
-            }
+
             Id::Anonymous(s) => {
                 state.write("anon".as_bytes());
                 state.write(s.as_bytes());
@@ -59,9 +59,6 @@ impl PartialEq for Id {
             | (Id::Escaped(l), Id::Escaped(r))
             | (Id::Plain(l), Id::Plain(r))
             | (Id::Anonymous(l), Id::Anonymous(r)) => l == r,
-            (Id::IdwPort(idl, pl), Id::IdwPort(idr, pr)) => idl == idr && pl == pr,
-            (Id::IdwPort(idl, None), id)
-            | (id, Id::IdwPort(idl, None)) => (&**idl) == id,
             _ => false
         }
     }
@@ -115,12 +112,12 @@ enum EdgeTy {
 
 #[derive(Debug, PartialEq, Clone)]
  struct Node {
-    id: Id,
+    id: NodeId,
     attributes: Vec<Attribute>,
 }
 
 impl Node {
-    pub fn new(id: Id, attributes: Vec<Attribute>) -> Self {
+    pub fn new(id: NodeId, attributes: Vec<Attribute>) -> Self {
         Node { id, attributes }
     }
 }
@@ -133,6 +130,33 @@ enum Stmt {
     GAttribute(GraphAttributes),
     Edge(Edge),
 }
+
+impl From<Node> for Stmt {
+    fn from(v: Node) -> Self {
+        Stmt::Node(v)
+    }
+}
+impl From<Edge> for Stmt {
+    fn from(v: Edge) -> Self {
+        Stmt::Edge(v)
+    }
+}
+impl From<GraphAttributes> for Stmt {
+    fn from(v: GraphAttributes) -> Self {
+        Stmt::GAttribute(v)
+    }
+}
+impl From<Attribute> for Stmt {
+    fn from(v: Attribute) -> Self {
+        Stmt::Attribute(v)
+    }
+}
+impl From<Subgraph> for Stmt {
+    fn from(v: Subgraph) -> Self {
+        Stmt::Subgraph(v)
+    }
+}
+
 #[derive(PartialEq, Debug,Clone)]
 struct Subgraph {
     id: Id,
@@ -144,6 +168,17 @@ struct Subgraph {
 enum Vertex {
     N(Node),
     S(Subgraph),
+}
+
+impl From<Node> for Vertex {
+    fn from(v: Node) -> Self {
+        Vertex::N(v)
+    }
+}
+impl From<Subgraph> for Vertex {
+    fn from(v: Subgraph) -> Self {
+        Vertex::S(v)
+    }
 }
 
 #[derive(Debug, PartialEq)]
