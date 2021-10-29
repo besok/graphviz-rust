@@ -1,12 +1,21 @@
-use crate::parser::{Attribute, Edge, EdgeTy, GraphAttributes, Id, Node, Port, Subgraph,Graph};
+use crate::parser::{Attribute, Edge, EdgeTy, GraphAttributes, Id, Node, Port, Subgraph, Graph};
 
 #[macro_export]
 macro_rules! port {
-    () => {None};
-    ($id:expr, $str:expr) => {Some(Port($id,$str))}
+    () => {Port(None,None)};
+    ( , $str:expr) => { Port(None,Some($str.to_string()))};
+    ( $id:expr , $str:expr) => {Port(Some($id),Some($str.to_string()))};
+    ( $id:expr) => {Port(Some($id),None)};
 }
 
-
+#[macro_export]
+macro_rules! node_id {
+    () => {  NodeId(id!(),None) };
+    ($e:expr) => { NodeId(id!($e),None) };
+    ($e:expr, $p:expr) => { NodeId(id!($e),Some($p)) };
+    ($i:ident $e:expr) => { NodeId(id!($i$e),None) };
+    ($i:ident $e:expr, $p:expr) => { NodeId(id!($i$e),Some($p)) };
+}
 
 #[macro_export]
 macro_rules! id {
@@ -71,20 +80,20 @@ macro_rules! node {
         Node::new(NodeId(id!( $id), None), attrs)
     }};
     ($i:ident $id:expr => $p:expr, $attrs:expr  ) => {
-        Node::new(NodeId(id!($i$id), $p), $attrs)
+        Node::new(NodeId(id!($i$id), Some($p)), $attrs)
     };
     ($i:ident $id:expr => $p:expr; $($attr:expr),+ ) => {{
         let mut attrs = Vec::new();
          $( attrs.push($attr) ; )+
-        Node::new(NodeId(id!($i$id), $p), attrs)
+        Node::new(NodeId(id!($i$id), Some($p)), attrs)
     }};
     ( $id:expr => $p:expr, $attrs:expr  ) => {
-        Node::new(NodeId(id!($id), $p), $attrs)
+        Node::new(NodeId(id!($id), Some($p)), $attrs)
     };
     ( $id:expr => $p:expr; $($attr:expr),+ ) => {{
         let mut attrs = Vec::new();
         $( attrs.push($attr) ; )+
-        Node::new(NodeId(id!($id), $p), attrs)
+        Node::new(NodeId(id!($id), Some($p)), attrs)
     }};
 }
 
@@ -177,47 +186,52 @@ macro_rules! graph {
 
 }
 
-
+#[cfg(test)]
 mod tests {
     use crate::parser::{Attribute, Edge, EdgeTy, Graph, GraphAttributes, Id, Node, NodeId, Port, Stmt, Subgraph, Vertex};
     use crate::parser::Id::Anonymous;
 
     #[test]
-    fn graph_test(){
+    fn graph_test() {
         assert_eq!(
             graph!(strict di id!("abc")),
-            Graph::Graph {id:id!("abc"),strict:true,stmts:vec![]}
-        ) ;
-    }
-    #[test]
-    fn edge_test(){
-        assert_eq!(
-            edge!(node!("1") => node!("2")),
-            Edge{ ty: EdgeTy::Pair(Vertex::N(node!("1")),Vertex::N(node!("2"))), attributes: vec![] }
-        ) ;
-        assert_eq!(
-            edge!(node!("1") => node!("2") => subgraph!("a")),
-            Edge{ ty: EdgeTy::Chain(vec![Vertex::N(node!("1")),Vertex::N(node!("2")),Vertex::S(subgraph!("a"))]), attributes: vec![] }
-        ) ;
-        assert_eq!(
-            edge!(node!("1") => node!("2"), vec![a_attr!("a","b")]),
-            Edge{ ty: EdgeTy::Pair(Vertex::N(node!("1")),Vertex::N(node!("2"))), attributes: vec![a_attr!("a","b")] }
-        );
-        assert_eq!(
-            edge!(node!("1") => node!("2"); a_attr!("a","b")),
-            Edge{ ty: EdgeTy::Pair(Vertex::N(node!("1")),Vertex::N(node!("2"))), attributes: vec![a_attr!("a","b")] }
+            Graph::DiGraph { id: id!("abc"), strict: true, stmts: vec![] }
         );
     }
+
     #[test]
-    fn stmt_test(){
-        assert_eq!(stmt!(node!()),Stmt::Node(Node::new(NodeId(id!(), None), vec![])));
+    fn edge_test() {
+        assert_eq!(
+            edge!(node_id!("1") => node_id!("2")),
+            Edge { ty: EdgeTy::Pair(Vertex::N(node_id!("1")), Vertex::N(node_id!("2"))), attributes: vec![] }
+        );
+        assert_eq!(
+            edge!(node_id!("1") => node_id!("2") => subgraph!("a")),
+            Edge { ty: EdgeTy::Chain(vec![Vertex::N(node_id!("1")), Vertex::N(node_id!("2")), Vertex::S(subgraph!("a"))]), attributes: vec![] }
+        );
+        assert_eq!(
+            edge!(node_id!("1") => node_id!("2"), vec![a_attr!("a","b")]),
+            Edge { ty: EdgeTy::Pair(Vertex::N(node_id!("1")), Vertex::N(node_id!("2"))), attributes: vec![a_attr!("a","b")] }
+        );
+        assert_eq!(
+            edge!(node_id!("1") => node_id!("2"); a_attr!("a","b")),
+            Edge { ty: EdgeTy::Pair(Vertex::N(node_id!("1")), Vertex::N(node_id!("2"))), attributes: vec![a_attr!("a","b")] }
+        );
     }
+
     #[test]
-    fn subgraph_test(){
-        assert_eq!(subgraph!(),Subgraph{ id: Anonymous("".to_string()), stmts: vec![] });
+    fn stmt_test() {
+        assert_eq!(stmt!(node!()), Stmt::Node(Node::new(NodeId(id!(), None), vec![])));
+    }
+
+    #[test]
+    fn subgraph_test() {
+        assert_eq!(subgraph!(), Subgraph { id: Anonymous("".to_string()), stmts: vec![] });
         assert_eq!(subgraph!("abc";node!()),
-                   Subgraph{ id: Id::Plain("abc".to_string()),
-                       stmts: vec![stmt!(node!())] });
+                   Subgraph {
+                       id: Id::Plain("abc".to_string()),
+                       stmts: vec![stmt!(node!())],
+                   });
     }
 
     #[test]
@@ -226,7 +240,7 @@ mod tests {
         assert_eq!(node!(html "abc"; a_attr!("a","a")),
                    Node::new(NodeId(id!(html "abc"), None),
                              vec![a_attr!("a","a")]));
-        assert_eq!(node!(html "abc" => port!(); a_attr!("a","a")),
+        assert_eq!(node!(html "abc" ; a_attr!("a","a")),
                    Node::new(NodeId(id!(html "abc"), None),
                              vec![a_attr!("a","a")]));
         assert_eq!(node!("abc" ; a_attr!("a","a"),a_attr!("a","a")),

@@ -3,6 +3,7 @@ use std::hash::{Hash, Hasher};
 
 mod parser;
 mod macros;
+mod printer;
 
 #[derive(Debug, PartialEq, Clone, Eq)]
  struct Port(pub Option<Id>, pub Option<String>);
@@ -166,12 +167,12 @@ struct Subgraph {
 
 #[derive(PartialEq, Debug,Clone)]
 enum Vertex {
-    N(Node),
+    N(NodeId),
     S(Subgraph),
 }
 
-impl From<Node> for Vertex {
-    fn from(v: Node) -> Self {
+impl From<NodeId> for Vertex {
+    fn from(v: NodeId) -> Self {
         Vertex::N(v)
     }
 }
@@ -186,3 +187,4 @@ impl From<Subgraph> for Vertex {
     Graph { id: Id, strict: bool, stmts: Vec<Stmt> },
     DiGraph { id: Id, strict: bool, stmts: Vec<Stmt> },
 }
+

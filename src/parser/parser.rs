@@ -116,7 +116,7 @@ fn process_node(rule: Pair<Rule>) -> Node {
 fn process_vertex(rule: Pair<Rule>) -> Vertex {
     let vertex_r = down(rule);
     match vertex_r.as_rule() {
-        Rule::node_id => Vertex::N(Node::new(process_node_id(vertex_r), vec![])),
+        Rule::node_id => Vertex::N(process_node_id(vertex_r)),
         Rule::subgraph => Vertex::S(process_subgraph(vertex_r)),
         _ => unreachable!("")
     }
@@ -202,7 +202,7 @@ fn process_graph(rule: Pair<Rule>) -> Graph {
 
 #[cfg(test)]
 mod test {
-    use crate::{id, port, a_attr, node, stmt, subgraph, graph, edge };
+    use crate::{id, port, a_attr, node, stmt, subgraph, graph, edge, node_id};
     use pest::error::Error;
     use pest::iterators::{Pair, Pairs};
     use pest::RuleType;
@@ -258,22 +258,22 @@ mod test {
     #[test]
     fn node_id_test() {
         let result = process_node_id(_parse("abc:n", Rule::node_id));
-        let expect = NodeId(id!("abc"), port!(None, Some("n".to_string())));
+        let expect = node_id!(id!("abc"), port!(, "n"));
         assert_eq!(result, expect);
 
         let result = process_node_id(_parse("abc:abc", Rule::node_id));
-        let expect = NodeId(id!("abc"), port!(Some(Id::Plain("abc".to_string())), None));
+        let expect = node_id!(id!("abc"), port!(  id!("abc")));
         assert_eq!(result, expect);
 
         let result = process_node_id(_parse("abc:abc:n", Rule::node_id));
-        let expect = NodeId(id!("abc"), port!(Some(Id::Plain("abc".to_string())), Some("n".to_string())));
+        let expect = node_id!(id!("abc"), port!(id!("abc"),"n"));
         assert_eq!(result, expect);
     }
 
     #[test]
     fn node_test() {
         let result = process_node(_parse("abc:n[a=1 , b=c ; d=<<abc>> e=e]", Rule::node));
-        let p = port!(None, Some("n".to_string()));
+        let p = port!(, "n" );
         let attributes = vec![
             a_attr!("a", "1"),
             a_attr!("b", "c"),
@@ -307,16 +307,16 @@ mod test {
     #[test]
     fn vertex_test() {
         let result = process_vertex(_parse("node", Rule::vertex));
-        assert_eq!(result, Vertex::N(node!("node")));
+        assert_eq!(result, Vertex::N(node_id!("node")));
     }
 
     #[test]
     fn edge_test() {
         let result = process_edge(_parse("node -> node1 -> node2", Rule::edge));
         let expected = vec![
-            Vertex::N(node!("node")),
-            Vertex::N(node!("node1")),
-            Vertex::N(node!("node2")),
+            Vertex::N(node_id!("node")),
+            Vertex::N(node_id!("node1")),
+            Vertex::N(node_id!("node2")),
         ];
         assert_eq!(result, expected);
     }
@@ -324,12 +324,12 @@ mod test {
     #[test]
     fn edge_stmt_test() {
         let result = process_edge_stmt(_parse("node -> node1 -> node2[a=2]", Rule::edge_stmt));
-        assert_eq!(result, edge!(node!("node")=> node!("node1")=>node!("node2"); a_attr!("a","2")));
+        assert_eq!(result, edge!(node_id!("node")=> node_id!("node1")=>node_id!("node2"); a_attr!("a","2")));
 
         let result = process_edge_stmt(_parse("node -> subgraph sg{a -> b}[a=2]", Rule::edge_stmt));
 
         assert_eq!(result, edge!(
-            node!("node") => subgraph!("sg";stmt!(edge!(node!("a") => node!("b"))));
+            node_id!("node") => subgraph!("sg";stmt!(edge!(node_id!("a") => node_id!("b"))));
             a_attr!("a","2")
         ));
     }
@@ -350,12 +350,12 @@ mod test {
 
         let result = process_stmt(_parse("node -> node1 -> node2[a=2]", Rule::stmt));
 
-        assert_eq!(result, stmt!( edge!(node!("node")=> node!("node1")=>node!("node2"); a_attr!("a","2"))));
+        assert_eq!(result, stmt!( edge!(node_id!("node")=> node_id!("node1")=>node_id!("node2"); a_attr!("a","2"))));
     }
 
     #[test]
     fn graph_test() {
-        let g:Graph = parse(r#"
+        let g: Graph = parse(r#"
         strict digraph t {
             aa[color=green]
             subgraph v {
@@ -371,16 +371,16 @@ mod test {
 
         assert_eq!(
             g,
-            graph! (strict di id!("t");
+            graph!(strict di id!("t");
               node!("aa";a_attr!("color","green")),
               subgraph!("v";
                 node!("aa"; a_attr!("shape","square")),
-                subgraph!("vv"; edge!(node!("a2") => node!("b2"))),
+                subgraph!("vv"; edge!(node_id!("a2") => node_id!("b2"))),
                 node!("aaa";a_attr!("color","red")),
-                edge!(node!("aaa") => node!("bbb"))
+                edge!(node_id!("aaa") => node_id!("bbb"))
                 ),
-              edge!(node!("aa") => node!("be") => subgraph!("v"; edge!(node!("d") => node!("aaa")))),
-              edge!(node!("aa") => node!("aaa") => node!("v"))
+              edge!(node_id!("aa") => node_id!("be") => subgraph!("v"; edge!(node_id!("d") => node_id!("aaa")))),
+              edge!(node_id!("aa") => node_id!("aaa") => node_id!("v"))
             )
         )
     }
