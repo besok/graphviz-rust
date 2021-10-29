@@ -1,4 +1,4 @@
-use crate::parser::{Attribute, Edge, EdgeTy, GraphAttributes, Id, Node, Port, Subgraph, Graph};
+use crate::dot_lang::{Attribute, Edge, EdgeTy, GraphAttributes, Id, Node, Port, Subgraph, Graph};
 
 #[macro_export]
 macro_rules! port {
@@ -188,8 +188,8 @@ macro_rules! graph {
 
 #[cfg(test)]
 mod tests {
-    use crate::parser::{Attribute, Edge, EdgeTy, Graph, GraphAttributes, Id, Node, NodeId, Port, Stmt, Subgraph, Vertex};
-    use crate::parser::Id::Anonymous;
+    use crate::dot_lang::{Attribute, Edge, EdgeTy, Graph, GraphAttributes, Id, Node, NodeId, Port, Stmt, Subgraph, Vertex};
+    use crate::dot_lang::Id::Anonymous;
 
     #[test]
     fn graph_test() {

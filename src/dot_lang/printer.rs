@@ -1,5 +1,4 @@
-use crate::parser::{Attribute, Edge, EdgeTy, Graph, GraphAttributes, Id, Node, NodeId, Port, Stmt, Subgraph, Vertex};
-//! The way of transforming incoming graph into graphviz dot format.
+use crate::dot_lang::{Attribute, Edge, EdgeTy, Graph, GraphAttributes, Id, Node, NodeId, Port, Stmt, Subgraph, Vertex};
 
 
 
@@ -30,7 +29,7 @@ impl PrinterContext {
         self
     }
     pub fn with_line_sep(&mut self, sep: String) -> &mut PrinterContext {
-        self.l_s = sep;
+        self.l_s = sep.clone();
         self.l_s_m = sep.clone();
         self
     }
@@ -39,12 +38,13 @@ impl PrinterContext {
         self
     }
 
-    pub fn new(semi: bool, indent_step: usize, l_s: String, inline_size: usize) -> Self {
+    pub fn new(semi: bool, indent_step: usize, line_s: String, inline_size: usize) -> Self {
         PrinterContext {
             is_digraph: false,
             semi, indent: 0,
-            indent_step, l_s, inline_size,
-            l_s_i: l_s.clone(),
+            indent_step, inline_size,
+            l_s:   line_s.clone(),
+            l_s_i: line_s.clone(),
             l_s_m: "".to_string() }
     }
 }
@@ -256,8 +256,8 @@ impl DotPrinter for Edge {
 #[cfg(test)]
 mod tests {
     use crate::{id, port, a_attr, node, stmt, subgraph, graph, edge, node_id};
-    use crate::parser::*;
-    use crate::parser::printer::{DotPrinter, PrinterContext};
+    use crate::dot_lang::*;
+    use crate::dot_lang::printer::{DotPrinter, PrinterContext};
 
     #[test]
     fn edge_test() {

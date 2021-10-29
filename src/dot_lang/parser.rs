@@ -3,11 +3,11 @@ use std::iter::Map;
 use pest::error::Error;
 use pest::iterators::{Pair, Pairs};
 use pest::RuleType;
-use crate::parser::{Attribute, Edge, EdgeTy, Graph, GraphAttributes, Id, Node, NodeId, Port, Stmt, Subgraph, Vertex};
+use crate::dot_lang::{Attribute, Edge, EdgeTy, Graph, GraphAttributes, Id, Node, NodeId, Port, Stmt, Subgraph, Vertex};
 use crate::pest::Parser;
 
 #[derive(Parser)]
-#[grammar = "parser/grammar/dot.pest"]
+#[grammar = "dot_lang/grammar/dot.pest"]
 struct DotParser;
 
 pub fn parse(dot: &str) -> Result<Graph, Error<Rule>> {
@@ -206,11 +206,11 @@ mod test {
     use pest::error::Error;
     use pest::iterators::{Pair, Pairs};
     use pest::RuleType;
-    use crate::parser::{Attribute, Edge, EdgeTy, Graph, GraphAttributes, Id, Node, NodeId, Port, Subgraph};
+    use crate::dot_lang::{Attribute, Edge, EdgeTy, Graph, GraphAttributes, Id, Node, NodeId, Port, Subgraph};
 
 
-    use crate::parser::parser::{do_parse, DotParser, down, parse, process_attr, process_attr_list, process_attr_stmt, process_edge, process_edge_stmt, process_id, process_node, process_node_id, process_stmt, process_vertex, Stmt, Vertex};
-    use crate::parser::parser::Rule;
+    use crate::dot_lang::parser::{do_parse, DotParser, down, parse, process_attr, process_attr_list, process_attr_stmt, process_edge, process_edge_stmt, process_id, process_node, process_node_id, process_stmt, process_vertex, Stmt, Vertex};
+    use crate::dot_lang::parser::Rule;
     use crate::pest::Parser;
 
     fn _parse(input: &str, ty: Rule) -> Pair<Rule> {
