@@ -1,4 +1,4 @@
-use crate::dot_lang::{Attribute, Edge, EdgeTy, GraphAttributes, Id, Node, Port, Subgraph, Graph};
+use dot_structures::*;
 
 #[macro_export]
 macro_rules! port {
@@ -26,11 +26,11 @@ macro_rules! id {
 }
 
 #[macro_export]
-macro_rules! a_attr {
-    ($ik:ident $k:expr,$iv:ident $v:expr) => {Attribute::Arbitrary(id!($k),id!($iv $v))};
-    ($ik:ident $k:expr,$v:expr) => {Attribute::Arbitrary(id!($ik $k),id!($v))};
-    ($k:expr, $iv:ident $v:expr) => {Attribute::Arbitrary(id!($k),id!($iv $v))};
-    ($k:expr,$v:expr) => {Attribute::Arbitrary(id!($k),id!($v))}
+macro_rules! attr {
+    ($ik:ident $k:expr,$iv:ident $v:expr) => {Attribute(id!($k),id!($iv $v))};
+    ($ik:ident $k:expr,$v:expr) => {Attribute(id!($ik $k),id!($v))};
+    ($k:expr, $iv:ident $v:expr) => {Attribute(id!($k),id!($iv $v))};
+    ($k:expr,$v:expr) => {Attribute(id!($k),id!($v))}
 }
 #[macro_export]
 macro_rules! stmt {
@@ -188,8 +188,7 @@ macro_rules! graph {
 
 #[cfg(test)]
 mod tests {
-    use crate::dot_lang::{Attribute, Edge, EdgeTy, Graph, GraphAttributes, Id, Node, NodeId, Port, Stmt, Subgraph, Vertex};
-    use crate::dot_lang::Id::Anonymous;
+    use dot_structures::*;
 
     #[test]
     fn graph_test() {
@@ -210,12 +209,12 @@ mod tests {
             Edge { ty: EdgeTy::Chain(vec![Vertex::N(node_id!("1")), Vertex::N(node_id!("2")), Vertex::S(subgraph!("a"))]), attributes: vec![] }
         );
         assert_eq!(
-            edge!(node_id!("1") => node_id!("2"), vec![a_attr!("a","b")]),
-            Edge { ty: EdgeTy::Pair(Vertex::N(node_id!("1")), Vertex::N(node_id!("2"))), attributes: vec![a_attr!("a","b")] }
+            edge!(node_id!("1") => node_id!("2"), vec![attr!("a","b")]),
+            Edge { ty: EdgeTy::Pair(Vertex::N(node_id!("1")), Vertex::N(node_id!("2"))), attributes: vec![attr!("a","b")] }
         );
         assert_eq!(
-            edge!(node_id!("1") => node_id!("2"); a_attr!("a","b")),
-            Edge { ty: EdgeTy::Pair(Vertex::N(node_id!("1")), Vertex::N(node_id!("2"))), attributes: vec![a_attr!("a","b")] }
+            edge!(node_id!("1") => node_id!("2"); attr!("a","b")),
+            Edge { ty: EdgeTy::Pair(Vertex::N(node_id!("1")), Vertex::N(node_id!("2"))), attributes: vec![attr!("a","b")] }
         );
     }
 
@@ -226,7 +225,7 @@ mod tests {
 
     #[test]
     fn subgraph_test() {
-        assert_eq!(subgraph!(), Subgraph { id: Anonymous("".to_string()), stmts: vec![] });
+        assert_eq!(subgraph!(), Subgraph { id: Id::Anonymous("".to_string()), stmts: vec![] });
         assert_eq!(subgraph!("abc";node!()),
                    Subgraph {
                        id: Id::Plain("abc".to_string()),
@@ -237,21 +236,21 @@ mod tests {
     #[test]
     fn node_test() {
         assert_eq!(node!(), Node::new(NodeId(id!(), None), vec![]));
-        assert_eq!(node!(html "abc"; a_attr!("a","a")),
+        assert_eq!(node!(html "abc"; attr!("a","a")),
                    Node::new(NodeId(id!(html "abc"), None),
-                             vec![a_attr!("a","a")]));
-        assert_eq!(node!(html "abc" ; a_attr!("a","a")),
+                             vec![attr!("a","a")]));
+        assert_eq!(node!(html "abc" ; attr!("a","a")),
                    Node::new(NodeId(id!(html "abc"), None),
-                             vec![a_attr!("a","a")]));
-        assert_eq!(node!("abc" ; a_attr!("a","a"),a_attr!("a","a")),
+                             vec![attr!("a","a")]));
+        assert_eq!(node!("abc" ; attr!("a","a"),attr!("a","a")),
                    Node::new(NodeId(id!( "abc"), None),
-                             vec![a_attr!("a","a"), a_attr!("a","a")]))
+                             vec![attr!("a","a"), attr!("a","a")]))
     }
 
     #[test]
     fn attr_test() {
-        assert_eq!(a_attr!("a","1"), Attribute::Arbitrary(id!("a"), id!("1")));
-        assert_eq!(a_attr!(html "a","1"), Attribute::Arbitrary(id!(html "a"), id!("1")))
+        assert_eq!(attr!("a","1"), Attribute(id!("a"), id!("1")));
+        assert_eq!(attr!(html "a","1"), Attribute(id!(html "a"), id!("1")))
     }
 
     #[test]

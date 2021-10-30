@@ -3,9 +3,8 @@ use std::iter::Map;
 use pest::error::Error;
 use pest::iterators::{Pair, Pairs};
 use pest::RuleType;
-use crate::dot_lang::{Attribute, Edge, EdgeTy, Graph, GraphAttributes, Id, Node, NodeId, Port, Stmt, Subgraph, Vertex};
 use crate::pest::Parser;
-
+use dot_structures::*;
 #[derive(Parser)]
 #[grammar = "dot_lang/grammar/dot.pest"]
 struct DotParser;
@@ -35,7 +34,7 @@ fn process_bare_attr(rule: Pair<Rule>) -> Attribute {
     let mut attr = rule.into_inner();
     let key = attr.next().map(process_id).unwrap();
     let val = attr.next().map(process_id).unwrap();
-    Attribute::Arbitrary(key, val)
+    Attribute(key, val)
 }
 
 fn process_attr(rule: Pair<Rule>) -> Attribute {
@@ -202,16 +201,17 @@ fn process_graph(rule: Pair<Rule>) -> Graph {
 
 #[cfg(test)]
 mod test {
-    use crate::{id, port, a_attr, node, stmt, subgraph, graph, edge, node_id};
     use pest::error::Error;
     use pest::iterators::{Pair, Pairs};
     use pest::RuleType;
-    use crate::dot_lang::{Attribute, Edge, EdgeTy, Graph, GraphAttributes, Id, Node, NodeId, Port, Subgraph};
 
 
     use crate::dot_lang::parser::{do_parse, DotParser, down, parse, process_attr, process_attr_list, process_attr_stmt, process_edge, process_edge_stmt, process_id, process_node, process_node_id, process_stmt, process_vertex, Stmt, Vertex};
     use crate::dot_lang::parser::Rule;
     use crate::pest::Parser;
+
+    use dot_generator::{id, port, attr, node, stmt, subgraph, graph, edge, node_id};
+    use dot_structures::*;
 
     fn _parse(input: &str, ty: Rule) -> Pair<Rule> {
         match do_parse(input, ty) {
@@ -236,19 +236,19 @@ mod test {
     #[test]
     fn attr_test() {
         let result = process_attr(_parse("a=1", Rule::attr));
-        assert_eq!(result, a_attr!("a","1"));
+        assert_eq!(result, attr!("a","1"));
         let result = process_attr(_parse("a = 1 , ;", Rule::attr));
-        assert_eq!(result, a_attr!("a","1"));
+        assert_eq!(result, attr!("a","1"));
     }
 
     #[test]
     fn attr_list_test() {
         let result = process_attr_list(_parse("[a=1 , b=c ; d=<<abc>> e=e]", Rule::attr_list));
         let expect = vec![
-            a_attr!("a", "1"),
-            a_attr!("b", "c"),
-            a_attr!("d", html "<<abc>>"),
-            a_attr!("e", "e"),
+            attr!("a", "1"),
+            attr!("b", "c"),
+            attr!("d", html "<<abc>>"),
+            attr!("e", "e"),
         ];
         assert_eq!(result, expect);
         let result = process_attr_list(_parse("[a=1 , b=c] [ d=<<abc>> e=e]", Rule::attr_list));
@@ -275,10 +275,10 @@ mod test {
         let result = process_node(_parse("abc:n[a=1 , b=c ; d=<<abc>> e=e]", Rule::node));
         let p = port!(, "n" );
         let attributes = vec![
-            a_attr!("a", "1"),
-            a_attr!("b", "c"),
-            a_attr!("d", html "<<abc>>"),
-            a_attr!("e", "e"),
+            attr!("a", "1"),
+            attr!("b", "c"),
+            attr!("d", html "<<abc>>"),
+            attr!("e", "e"),
         ];
         assert_eq!(result, node!("abc" => p, attributes));
     }
@@ -287,19 +287,19 @@ mod test {
     fn attr_stmts_test() {
         let result = process_attr_stmt(_parse("node [a=1 , b=c ; d=<<abc>> e=e]", Rule::attr_stmt));
         let attributes = vec![
-            a_attr!("a", "1"),
-            a_attr!("b", "c"),
-            a_attr!("d", html "<<abc>>"),
-            a_attr!("e", "e"),
+            attr!("a", "1"),
+            attr!("b", "c"),
+            attr!("d", html "<<abc>>"),
+            attr!("e", "e"),
         ];
         assert_eq!(result, GraphAttributes::Node(attributes));
 
         let result = process_attr_stmt(_parse("graph [a=1 , b=c ; d=<<abc>> e=e]", Rule::attr_stmt));
         let attributes = vec![
-            a_attr!("a", "1"),
-            a_attr!("b", "c"),
-            a_attr!("d", html "<<abc>>"),
-            a_attr!("e", "e"),
+            attr!("a", "1"),
+            attr!("b", "c"),
+            attr!("d", html "<<abc>>"),
+            attr!("e", "e"),
         ];
         assert_eq!(result, GraphAttributes::Graph(attributes));
     }
@@ -324,33 +324,33 @@ mod test {
     #[test]
     fn edge_stmt_test() {
         let result = process_edge_stmt(_parse("node -> node1 -> node2[a=2]", Rule::edge_stmt));
-        assert_eq!(result, edge!(node_id!("node")=> node_id!("node1")=>node_id!("node2"); a_attr!("a","2")));
+        assert_eq!(result, edge!(node_id!("node")=> node_id!("node1")=>node_id!("node2"); attr!("a","2")));
 
         let result = process_edge_stmt(_parse("node -> subgraph sg{a -> b}[a=2]", Rule::edge_stmt));
 
         assert_eq!(result, edge!(
             node_id!("node") => subgraph!("sg";stmt!(edge!(node_id!("a") => node_id!("b"))));
-            a_attr!("a","2")
+            attr!("a","2")
         ));
     }
 
     #[test]
     fn stmt_test() {
         let result = process_stmt(_parse("a=b", Rule::stmt));
-        assert_eq!(result, stmt!(a_attr!("a","b")));
+        assert_eq!(result, stmt!(attr!("a","b")));
 
         let result = process_stmt(_parse("node [a=1 , b=c ; d=<<abc>> e=e]", Rule::stmt));
         let attributes = vec![
-            a_attr!("a", "1"),
-            a_attr!("b", "c"),
-            a_attr!("d", html "<<abc>>"),
-            a_attr!("e", "e"),
+            attr!("a", "1"),
+            attr!("b", "c"),
+            attr!("d", html "<<abc>>"),
+            attr!("e", "e"),
         ];
         assert_eq!(result, stmt!(GraphAttributes::Node(attributes)));
 
         let result = process_stmt(_parse("node -> node1 -> node2[a=2]", Rule::stmt));
 
-        assert_eq!(result, stmt!( edge!(node_id!("node")=> node_id!("node1")=>node_id!("node2"); a_attr!("a","2"))));
+        assert_eq!(result, stmt!( edge!(node_id!("node")=> node_id!("node1")=>node_id!("node2"); attr!("a","2"))));
     }
 
     #[test]
@@ -372,16 +372,23 @@ mod test {
         assert_eq!(
             g,
             graph!(strict di id!("t");
-              node!("aa";a_attr!("color","green")),
+              node!("aa";attr!("color","green")),
               subgraph!("v";
-                node!("aa"; a_attr!("shape","square")),
+                node!("aa"; attr!("shape","square")),
                 subgraph!("vv"; edge!(node_id!("a2") => node_id!("b2"))),
-                node!("aaa";a_attr!("color","red")),
+                node!("aaa";attr!("color","red")),
                 edge!(node_id!("aaa") => node_id!("bbb"))
                 ),
               edge!(node_id!("aa") => node_id!("be") => subgraph!("v"; edge!(node_id!("d") => node_id!("aaa")))),
               edge!(node_id!("aa") => node_id!("aaa") => node_id!("v"))
             )
         )
+    }
+
+    #[test]
+    fn comments_test() {
+        let g: Graph = parse("// abc \n # abc \n strict digraph t { \n /* \n abc */ \n}").unwrap();
+
+        assert_eq!(g, graph!(strict di id!("t")))
     }
 }

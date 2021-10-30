@@ -1,7 +1,4 @@
-use crate::dot_lang::{Attribute, Edge, EdgeTy, Graph, GraphAttributes, Id, Node, NodeId, Port, Stmt, Subgraph, Vertex};
-
-
-
+use dot_structures::{Attribute, Edge, EdgeTy, Graph, GraphAttributes, Id, Node, NodeId, Port, Stmt, Subgraph, Vertex};
 
 struct PrinterContext {
     is_digraph: bool,
@@ -120,7 +117,7 @@ impl DotPrinter for NodeId {
 impl DotPrinter for Attribute {
     fn print(&self, ctx: &mut PrinterContext) -> String {
         match self {
-            Attribute::Arbitrary(l, r) => format!("{}={}", l.print(ctx), r.print(ctx))
+            Attribute(l, r) => format!("{}={}", l.print(ctx), r.print(ctx))
         }
     }
 }
@@ -255,14 +252,14 @@ impl DotPrinter for Edge {
 
 #[cfg(test)]
 mod tests {
-    use crate::{id, port, a_attr, node, stmt, subgraph, graph, edge, node_id};
-    use crate::dot_lang::*;
+    use dot_generator::{id, port, attr, node, stmt, subgraph, graph, edge, node_id};
+    use dot_structures::*;
     use crate::dot_lang::printer::{DotPrinter, PrinterContext};
 
     #[test]
     fn edge_test() {
         let mut ctx = PrinterContext::default();
-        let edge = edge!(node_id!("abc") => node_id!("bce") => node_id!("cde"); a_attr!("a",2));
+        let edge = edge!(node_id!("abc") => node_id!("bce") => node_id!("cde"); attr!("a",2));
         assert_eq!(edge.print(&mut ctx), "abc -- bce -- cde[a=2]");
         ctx.is_digraph = true;
         assert_eq!(edge.print(&mut ctx), "abc -> bce -> cde[a=2]");
@@ -278,20 +275,20 @@ mod tests {
     #[test]
     fn node_test() {
         let mut ctx = PrinterContext::default();
-        assert_eq!(node!("abc";a_attr!("a",2)).print(&mut ctx), "abc[a=2]".to_string());
+        assert_eq!(node!("abc";attr!("a",2)).print(&mut ctx), "abc[a=2]".to_string());
     }
 
     #[test]
     fn attr_test() {
         let mut ctx = PrinterContext::default();
-        let attr = a_attr!("a",2);
+        let attr = attr!("a",2);
         assert_eq!(attr.print(&mut ctx), "a=2".to_string());
     }
 
     #[test]
     fn graph_attr_test() {
         let mut ctx = PrinterContext::default();
-        let n_attr = GraphAttributes::Node(vec![a_attr!("a",2), a_attr!("b",3)]);
+        let n_attr = GraphAttributes::Node(vec![attr!("a",2), attr!("b",3)]);
         assert_eq!(n_attr.print(&mut ctx), "node[a=2,b=3]".to_string());
     }
 
@@ -308,11 +305,11 @@ mod tests {
         let mut ctx = PrinterContext::default();
         ctx.always_inline();
         let g = graph!(strict di id!("t");
-              node!("aa";a_attr!("color","green")),
+              node!("aa";attr!("color","green")),
               subgraph!("v";
-                node!("aa"; a_attr!("shape","square")),
+                node!("aa"; attr!("shape","square")),
                 subgraph!("vv"; edge!(node_id!("a2") => node_id!("b2"))),
-                node!("aaa";a_attr!("color","red")),
+                node!("aaa";attr!("color","red")),
                 edge!(node_id!("aaa") => node_id!("bbb"))
                 ),
               edge!(node_id!("aa") => node_id!("be") => subgraph!("v"; edge!(node_id!("d") => node_id!("aaa")))),

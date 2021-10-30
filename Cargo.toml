@@ -8,11 +8,18 @@ license-file = "LICENSE"
 homepage = "https://github.com/besok/graphviz-rust"
 repository = "https://github.com/besok/graphviz-rust"
 readme = "README.md"
-keywords = ["graph", "graphviz","dotfile","dot","visualize"]
+keywords = ["graph", "graphviz", "dotfile", "dot", "visualize"]
 categories = ["libraries"]
+
+[lib]
+proc-macro = true
 
 [dependencies]
 pest = "2.0"
 pest_derive = "2.0"
 rand = "0.8.4"
+into-attr = { path = "into-attr" }
+into-attr-derive = {path = "into-attr-derive"}
+dot-structures = { path = "dot-structures" }
+dot-generator = { path = "dot-generator" }
 [dev-dependencies]
