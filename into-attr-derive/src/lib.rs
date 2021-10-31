@@ -32,8 +32,8 @@ fn impl_into_attr_macro(ast: &syn::DeriveInput) -> TokenStream {
         Data::Struct(ds) => {
             quote! {
               impl IntoAttribute for #name {
-                fn into_attr(self)  -> Attribute {
-                 attr!(#name_str,"abc")
+                fn into_attr(self) -> Attribute {
+                 attr!(#name_str,self.0)
                 }
               }
             }
