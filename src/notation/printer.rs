@@ -254,7 +254,7 @@ impl DotPrinter for Edge {
 mod tests {
     use dot_generator::{id, port, attr, node, stmt, subgraph, graph, edge, node_id};
     use dot_structures::*;
-    use crate::dot_lang::printer::{DotPrinter, PrinterContext};
+    use crate::notation::printer::{DotPrinter, PrinterContext};
 
     #[test]
     fn edge_test() {

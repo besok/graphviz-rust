@@ -6,7 +6,7 @@ use pest::RuleType;
 use crate::pest::Parser;
 use dot_structures::*;
 #[derive(Parser)]
-#[grammar = "dot_lang/grammar/dot.pest"]
+#[grammar = "notation/grammar/dot.pest"]
 struct DotParser;
 
 pub fn parse(dot: &str) -> Result<Graph, Error<Rule>> {
@@ -206,8 +206,8 @@ mod test {
     use pest::RuleType;
 
 
-    use crate::dot_lang::parser::{do_parse, DotParser, down, parse, process_attr, process_attr_list, process_attr_stmt, process_edge, process_edge_stmt, process_id, process_node, process_node_id, process_stmt, process_vertex, Stmt, Vertex};
-    use crate::dot_lang::parser::Rule;
+    use crate::notation::parser::{do_parse, DotParser, down, parse, process_attr, process_attr_list, process_attr_stmt, process_edge, process_edge_stmt, process_id, process_node, process_node_id, process_stmt, process_vertex, Stmt, Vertex};
+    use crate::notation::parser::Rule;
     use crate::pest::Parser;
 
     use dot_generator::{id, port, attr, node, stmt, subgraph, graph, edge, node_id};

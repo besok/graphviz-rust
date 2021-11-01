@@ -1,4 +1,4 @@
-mod dot_lang;
+mod notation;
 
 #[macro_use]
 extern crate pest_derive;

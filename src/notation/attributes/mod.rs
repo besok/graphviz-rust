@@ -295,9 +295,9 @@ generate_attr!(enum color_name;
 #[cfg(test)]
 pub mod tests {
     use std::fmt::{Display, Formatter};
-    use crate::dot_lang::attributes::*;
+    use crate::notation::attributes::*;
     use dot_generator::{attr};
-    use crate::dot_lang::attributes::*;
+    use crate::notation::attributes::*;
     use into_attr::IntoAttribute;
 
 
