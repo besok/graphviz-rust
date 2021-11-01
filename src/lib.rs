@@ -1,5 +1,3 @@
-#![feature(box_syntax)]
-
 mod dot_lang;
 
 #[macro_use]
