@@ -1,8 +1,21 @@
 //! graphviz [`attributes`]
 //!
 //! [`attributes`]: https://graphviz.org/doc/info/attrs.html
+//! # Examples:
+//! ```rust
+//! use graphviz_rust::attributes::{color, color_name, GraphAttributes, NodeAttributes};
+//! use into_attr::IntoAttribute;
+//! use dot_structures::*;
+//! use dot_generator::*;
+//! fn test() {
+//!         assert_eq!(GraphAttributes::center(true), attr!("center",true));
+//!         assert_eq!(
+//!             NodeAttributes::color(color_name::antiquewhite1),
+//!             attr!("color","antiquewhite1"));
+//!         assert_eq!(color::default().into_attr(), attr!("color","black"));
+//!     }
+//! ```
 mod generate;
-
 use crate::{generate_attr, as_item};
 use into_attr::IntoAttribute;
 use into_attr_derive::IntoAttribute;
@@ -11,13 +24,14 @@ use dot_structures::*;
 use std::fmt::Display;
 use std::fmt::Formatter;
 
-enum  NodeAttributes {}
-
-enum  EdgeAttributes {}
-
-enum  GraphAttributes {}
-
-enum  SubgraphAttributes {}
+/// The attributes appearing on the node
+pub enum  NodeAttributes {}
+/// The attributes appearing on the edge
+pub enum  EdgeAttributes {}
+/// The attributes appearing on the root graph
+pub enum  GraphAttributes {}
+/// The attributes appearing on the subgraph
+pub enum  SubgraphAttributes {}
 
 generate_attr!(struct _background for GraphAttributes; String; "<none>".to_string() );
 generate_attr!(struct area for NodeAttributes, SubgraphAttributes; f32; 1.0);
@@ -295,14 +309,13 @@ generate_attr!(enum color_name;
 #[cfg(test)]
 pub mod tests {
     use std::fmt::{Display, Formatter};
-    use crate::notation::attributes::*;
     use dot_generator::{attr};
-    use crate::notation::attributes::*;
+    use crate::attributes::*;
     use into_attr::IntoAttribute;
 
 
     #[test]
-    fn shape_test() {
+    fn test() {
         assert_eq!(GraphAttributes::center(true), attr!("center",true));
         assert_eq!(GraphAttributes::bgcolor(color_name::antiquewhite1), attr!("bgcolor","antiquewhite1"));
         assert_eq!(color::default().into_attr(), attr!("color","black"));

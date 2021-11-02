@@ -6,7 +6,7 @@ macro_rules! generate_attr {
     (enum $name:tt ; $($values:tt),+) =>{
          as_item! {
              #[derive(Debug,PartialEq, IntoAttribute)]
-             enum $name { $($values),+ }
+             pub enum $name { $($values),+ }
          }
          impl Display for $name {
             fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
@@ -17,11 +17,11 @@ macro_rules! generate_attr {
     (enum $name:tt for $($owners:tt),+; $($values:tt),+) =>{
          as_item! {
              #[derive(Debug,PartialEq, IntoAttribute)]
-             enum $name { $($values),+ }
+             pub enum $name { $($values),+ }
          }
 
          $(impl $owners {
-                  fn $name(elem:$name) -> Attribute {
+                 pub fn $name(elem:$name) -> Attribute {
                       elem.into_attr()
                   }
              }
@@ -31,7 +31,7 @@ macro_rules! generate_attr {
     (enum $name:tt for $($owners:tt),+; $($values:tt),+;$default:tt ) =>{
          as_item! {
              #[derive(Debug,PartialEq, IntoAttribute)]
-             enum $name { $($values),+ }
+             pub enum $name { $($values),+ }
          }
 
          impl Default for $name{
@@ -39,7 +39,7 @@ macro_rules! generate_attr {
          }
 
          $(impl $owners{
-                  fn $name(elem:$name) -> Attribute {
+                 pub fn $name(elem:$name) -> Attribute {
                       elem.into_attr()
                   }
              }
@@ -50,10 +50,10 @@ macro_rules! generate_attr {
     (struct $name:tt for $($owners:tt),+; $ty:tt) =>{
         as_item! {
              #[derive(Debug,PartialEq, IntoAttribute)]
-             struct $name ($ty);
+             pub struct $name ($ty);
         }
         $(impl $owners {
-                  fn $name(elem:$ty) -> Attribute {
+                 pub fn $name(elem:$ty) -> Attribute {
                      $name(elem).into_attr()
                   }
              }
@@ -63,14 +63,14 @@ macro_rules! generate_attr {
     (struct $name:tt for $($owners:tt),+; $ty:tt; $default:expr) =>{
          as_item! {
              #[derive(Debug,PartialEq, IntoAttribute)]
-             struct $name ($ty);
+             pub struct $name ($ty);
          }
         impl Default for $name{
                  fn default() -> Self { $name($default) }
         }
          $(
              impl $owners{
-                  fn $name(elem:$ty) -> Attribute {
+                 pub fn $name(elem:$ty) -> Attribute {
                      $name(elem).into_attr()
                   }
              }

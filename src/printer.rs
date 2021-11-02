@@ -1,35 +1,71 @@
+//! It allows to transform a graph into a string carrying dot info according
+//! to the notation.
+//!
+//! # Example:
+//! ```rust
+//!     use dot_generator::*;
+//!     use dot_structures::*;
+//!     use graphviz_rust::printer::{PrinterContext,DotPrinter};
+//!     fn subgraph_test() {
+//!         let mut ctx = PrinterContext::default();
+//!         let s = subgraph!("id"; node!("abc"), edge!(node_id!("a") => node_id!("b")));
+//!         assert_eq!(s.print(&mut ctx), "subgraph id {\n    abc\n    a -- b \n}".to_string());
+//!     }
+//! ```
 use dot_structures::{Attribute, Edge, EdgeTy, Graph, GraphAttributes, Id, Node, NodeId, Port, Stmt, Subgraph, Vertex};
 
-struct PrinterContext {
+/// Context allows to customize the output of the file.
+/// # Example:
+/// ```rust
+///     fn ctx(){
+///         use self::graphviz_rust::printer::PrinterContext;
+///
+///         let mut ctx =PrinterContext::default();
+///         ctx.always_inline();
+///         ctx.with_indent_step(4);
+///     }
+/// ```
+pub struct PrinterContext {
+    /// internal flag which is decoupled from the graph
     is_digraph: bool,
+    /// a flag adds a semicolon at the end of the line
     semi: bool,
+    /// an initial indent. 0 by default
     indent: usize,
+    /// a step of the indent. 2 by default
     indent_step: usize,
+    /// a line separator. can be empty
     l_s: String,
+    /// a len of the text to keep on one line
     inline_size: usize,
     l_s_i: String,
     l_s_m: String,
 }
 
 impl PrinterContext {
-    pub fn always_inline(&mut self) {
+    /// everything in one line
+    pub fn always_inline(&mut self) -> &mut PrinterContext {
         self.l_s_m = self.l_s_i.clone();
         self.l_s = self.l_s_i.clone();
+        self
     }
-
+    /// add semi at the end of every line
     pub fn with_semi(&mut self) -> &mut PrinterContext {
         self.semi = true;
         self
     }
+    /// set a step of the indent
     pub fn with_indent_step(&mut self, step: usize) -> &mut PrinterContext {
         self.indent_step = step;
         self
     }
+    /// set a specific line sep
     pub fn with_line_sep(&mut self, sep: String) -> &mut PrinterContext {
         self.l_s = sep.clone();
         self.l_s_m = sep.clone();
         self
     }
+    /// set a line len enough to fit in a line
     pub fn with_inline_size(&mut self, inline_s: usize) -> &mut PrinterContext {
         self.inline_size = inline_s;
         self
@@ -38,11 +74,14 @@ impl PrinterContext {
     pub fn new(semi: bool, indent_step: usize, line_s: String, inline_size: usize) -> Self {
         PrinterContext {
             is_digraph: false,
-            semi, indent: 0,
-            indent_step, inline_size,
-            l_s:   line_s.clone(),
+            semi,
+            indent: 0,
+            indent_step,
+            inline_size,
+            l_s: line_s.clone(),
             l_s_i: line_s.clone(),
-            l_s_m: "".to_string() }
+            l_s_m: "".to_string(),
+        }
     }
 }
 
@@ -81,7 +120,24 @@ impl Default for PrinterContext {
     }
 }
 
-trait DotPrinter {
+/// The trait allowing to transform a graph into the dot file:
+/// # Example:
+///  ```rust
+///     fn test(){
+///         use dot_generator::*;
+///         use dot_structures::*;
+///         use self::graphviz_rust::printer::PrinterContext;
+///         use self::graphviz_rust::printer::DotPrinter;
+///
+///         let mut ctx =PrinterContext::default();
+///         ctx.always_inline();
+///         ctx.with_indent_step(4);
+///         let graph = graph!(strict di id!("t"));
+///
+///         let string = graph.print(&mut ctx);
+///     }
+/// ```
+pub trait DotPrinter {
     fn print(&self, ctx: &mut PrinterContext) -> String;
 }
 
@@ -254,7 +310,7 @@ impl DotPrinter for Edge {
 mod tests {
     use dot_generator::{id, port, attr, node, stmt, subgraph, graph, edge, node_id};
     use dot_structures::*;
-    use crate::notation::printer::{DotPrinter, PrinterContext};
+    use crate::printer::{DotPrinter, PrinterContext};
 
     #[test]
     fn edge_test() {

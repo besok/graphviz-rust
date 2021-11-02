@@ -4,7 +4,7 @@
 //!
 //! [`notation`]: https://graphviz.org/doc/info/lang.html
 //! # Description:
-//! In overall, the format of macroses is the following one:
+//! In overall, the format of macros is the following one:
 //!  - name or id or any other markers
 //!  - list of vec with a prefix , or seq of elems with a prefix ;
 //!
@@ -88,7 +88,7 @@ macro_rules! id {
 }
 
 /// represents an attribute in dot lang.
-/// #Example:
+/// # Example:
 /// ```rust
 ///     fn attr_test() {
 ///         use dot_generator::*;
@@ -153,6 +153,11 @@ macro_rules! subgraph {
         let mut stmts_vec = Vec::new();
         $( stmts_vec.push(stmt!($stmts)) ; )+
         Subgraph{id:id!($id),stmts:stmts_vec}
+    }};
+    (; $($stmts:expr),+ ) => {{
+        let mut stmts_vec = Vec::new();
+        $( stmts_vec.push(stmt!($stmts)) ; )+
+        Subgraph{id:id!(),stmts:stmts_vec}
     }};
 
 }
@@ -292,7 +297,7 @@ macro_rules! edge {
 ///             Graph::DiGraph { id: id!("abc"), strict: true, stmts: vec![] }
 ///         );
 ///         assert_eq!(
-///             graph!(strict di id!("abc");stmt!(node!("abc"))),
+///             graph!(strict di id!("abc");node!("abc")),
 ///             Graph::DiGraph { id: id!("abc"), strict: true, stmts: vec![stmt!(node!("abc"))] }
 ///         );
 ///     }
@@ -324,7 +329,6 @@ macro_rules! graph {
         Graph::DiGraph { id: $id, strict: false, stmts: $stmts }
     };
 
-
     (strict $id:expr; $($stmts:expr),+) => {{
          let mut stmts = vec![];
          $( stmts.push(stmt!($stmts)) ; )+
@@ -337,13 +341,13 @@ macro_rules! graph {
     }};
     (strict di $id:expr; $($stmts:expr),+) => {{
          let mut stmts = vec![];
-          $( stmts.push(stmt!($stmts)) ; )+
-        Graph::DiGraph { id: $id, strict: true, stmts: stmts }
+         $( stmts.push(stmt!($stmts)) ; )+
+         Graph::DiGraph { id: $id, strict: true, stmts: stmts }
     }};
     (di $id:expr; $($stmts:expr),+) => {{
          let mut stmts = vec![];
-          $( stmts.push(stmt!($stmts)) ; )+
-        Graph::DiGraph { id: $id, strict: false, stmts: stmts }
+         $( stmts.push(stmt!($stmts)) ; )+
+         Graph::DiGraph { id: $id, strict: false, stmts: stmts }
     }};
 
 }

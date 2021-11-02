@@ -1,3 +1,8 @@
+//! Parser for the ['notation'].
+//!
+//! The grammar can be viewed in `/grammar/dot.pest`
+//!
+//! ['notation']: https://graphviz.org/doc/info/lang.html
 use std::collections::HashMap;
 use std::iter::Map;
 use pest::error::Error;
@@ -5,14 +10,17 @@ use pest::iterators::{Pair, Pairs};
 use pest::RuleType;
 use crate::pest::Parser;
 use dot_structures::*;
+
 #[derive(Parser)]
-#[grammar = "notation/grammar/dot.pest"]
+#[grammar = "grammar/dot.pest"]
 struct DotParser;
 
-pub fn parse(dot: &str) -> Result<Graph, Error<Rule>> {
+
+pub(crate) fn parse(dot: &str) -> Result<Graph, String> {
     do_parse(dot, Rule::file)
         .map(|r| r.into_iter().next().unwrap())
         .map(|r| process_graph(down(r)))
+        .map_err(|v| v.to_string())
 }
 
 fn down(rule: Pair<Rule>) -> Pair<Rule> {
@@ -206,8 +214,8 @@ mod test {
     use pest::RuleType;
 
 
-    use crate::notation::parser::{do_parse, DotParser, down, parse, process_attr, process_attr_list, process_attr_stmt, process_edge, process_edge_stmt, process_id, process_node, process_node_id, process_stmt, process_vertex, Stmt, Vertex};
-    use crate::notation::parser::Rule;
+    use crate::parser::{do_parse, DotParser, down, parse, process_attr, process_attr_list, process_attr_stmt, process_edge, process_edge_stmt, process_id, process_node, process_node_id, process_stmt, process_vertex, Stmt, Vertex};
+    use crate::parser::Rule;
     use crate::pest::Parser;
 
     use dot_generator::{id, port, attr, node, stmt, subgraph, graph, edge, node_id};

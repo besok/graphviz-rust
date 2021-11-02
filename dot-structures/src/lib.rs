@@ -1,10 +1,33 @@
+//! # The structures of dot language
+//! The set of components of the graphviz dot notation
+//! endeavouring to follow comparatively close to the language [`notation`]
+//!
+//! [`notation`]: https://graphviz.org/doc/info/lang.html
+//!
+//! # Description:
+//! ```txt
+//!     strict digraph t {           <= graph
+//!         aa[color=green]          <= node aa and attributes in [..]
+//!         subgraph v {             <= subgraph v
+//! 	     aa[shape=square]
+//! 	     subgraph vv{a2 -> b2}
+//! 	     aaa[color=red]
+//! 	     aaa -> subgraph { d -> aaa}  <= subgraph id is anon
+//!         }
+//!        aa -> be -> d -> aaa       <= type of the edge is chain
+//!    }
+//! ```
 use std::fmt::{Display, Formatter};
-use std::hash::{Hash, Hasher};
 
+/// the component represents a port in the language.
+/// It contains from id and direction. All can be optional separately but not at the same time.
 #[derive(Debug, PartialEq, Clone, Eq)]
 pub struct Port(pub Option<Id>, pub Option<String>);
 
-#[derive(Debug, Clone, Eq)]
+/// the component represents a id in the language.
+/// The Anonymous is a virtual component to keep the other components consistent in case
+/// when a node or subgraph is anonymous
+#[derive(Debug, Clone,PartialEq,Eq)]
 pub enum Id {
     Html(String),
     Escaped(String),
@@ -23,48 +46,16 @@ impl Display for Id {
     }
 }
 
+/// the component represents a node_id in the language.
+/// The component turns up in the edges predominantly or as an id for a node.
 #[derive(Debug, PartialEq, Clone)]
 pub struct NodeId(pub Id, pub Option<Port>);
 
-impl Hash for Id {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        match self {
-            Id::Html(s) => {
-                state.write("html".as_bytes());
-                state.write(s.as_bytes());
-            }
-            Id::Escaped(s) => {
-                state.write("escaped".as_bytes());
-                state.write(s.as_bytes());
-            }
-            Id::Plain(s) => {
-                state.write("plain".as_bytes());
-                state.write(s.as_bytes());
-            }
-
-            Id::Anonymous(s) => {
-                state.write("anon".as_bytes());
-                state.write(s.as_bytes());
-            }
-        }
-    }
-}
-
-impl PartialEq for Id {
-    fn eq(&self, other: &Self) -> bool {
-        match (self, other) {
-            (Id::Html(l), Id::Html(r))
-            | (Id::Escaped(l), Id::Escaped(r))
-            | (Id::Plain(l), Id::Plain(r))
-            | (Id::Anonymous(l), Id::Anonymous(r)) => l == r,
-            _ => false
-        }
-    }
-}
-
+/// the component represents a attribute in the language.
 #[derive(PartialEq, Debug, Clone)]
 pub struct Attribute(pub Id, pub Id);
 
+/// the component represents a set of attributes with prefix denoting a type in the language.
 #[derive(PartialEq, Debug, Clone)]
 pub enum GraphAttributes {
     Graph(Vec<Attribute>),
@@ -83,19 +74,27 @@ impl GraphAttributes {
     }
 }
 
-
+/// the component represents a edge in the language.
 #[derive(Debug, PartialEq, Clone)]
 pub struct Edge {
     pub ty: EdgeTy,
     pub attributes: Vec<Attribute>,
 }
 
+impl Edge {
+    fn add_attr(&mut self,attr:Attribute){
+        self.attributes.push(attr)
+    }
+}
+
+/// the component depicts a type of the edge, namely it is a pair of chain.
+/// From the graph point of view, it impacts a compact display only.
 #[derive(Debug, PartialEq, Clone)]
 pub enum EdgeTy {
     Pair(Vertex, Vertex),
     Chain(Vec<Vertex>),
 }
-
+/// the component represents the vital component, namely node in the lang.
 #[derive(Debug, PartialEq, Clone)]
 pub struct Node {
     pub id: NodeId,
@@ -106,8 +105,12 @@ impl Node {
     pub fn new(id: NodeId, attributes: Vec<Attribute>) -> Self {
         Node { id, attributes }
     }
+    fn add_attr(&mut self,attr:Attribute){
+        self.attributes.push(attr)
+    }
 }
 
+/// the component represents a wrapper to keep sustainability in subgraph and graph bodies.
 #[derive(PartialEq, Debug, Clone)]
 pub enum Stmt {
     Node(Node),
@@ -146,14 +149,20 @@ impl From<Subgraph> for Stmt {
         Stmt::Subgraph(v)
     }
 }
-
+/// the component represents a subgraph  in the lang.
 #[derive(PartialEq, Debug, Clone)]
 pub struct Subgraph {
     pub id: Id,
     pub stmts: Vec<Stmt>,
 }
 
+impl Subgraph {
+    fn add_stmt(&mut self,stmt:Stmt){
+        self.stmts.push(stmt)
+    }
+}
 
+/// the component represents an edge component.
 #[derive(PartialEq, Debug, Clone)]
 pub enum Vertex {
     N(NodeId),
@@ -171,9 +180,18 @@ impl From<Subgraph> for Vertex {
         Vertex::S(v)
     }
 }
-
-#[derive(Debug, PartialEq)]
+/// the component represents a graph in the lang.
+#[derive(Debug, PartialEq,Clone)]
 pub enum Graph {
     Graph { id: Id, strict: bool, stmts: Vec<Stmt> },
     DiGraph { id: Id, strict: bool, stmts: Vec<Stmt> },
+}
+
+impl Graph {
+    pub fn add_stmt(&mut self,stmt:Stmt){
+        match self {
+            Graph::Graph { stmts,.. } => {stmts.push(stmt)}
+            Graph::DiGraph { stmts,.. } => {stmts.push(stmt)}
+        }
+    }
 }
