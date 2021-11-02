@@ -1,6 +1,6 @@
 [package]
 name = "graphviz-rust"
-description = "The library provides the basic functionality to find the set of the data according to the filtering query."
+description = "The library provides the basic access to the graphs in graphviz format with ability to import into or export from it."
 version = "0.1.0"
 edition = "2021"
 authors = ["BorisZhguchev <zhguchev@gmail.com>"]
@@ -17,9 +17,9 @@ categories = ["libraries"]
 pest = "2.0"
 pest_derive = "2.0"
 rand = "0.8.4"
-into-attr = { path = "into-attr" }
-into-attr-derive = {path = "into-attr-derive"}
-dot-structures = { path = "dot-structures" }
-dot-generator = { path = "dot-generator" }
+into-attr = { path = "into-attr", version="0.1.0" }
+into-attr-derive = {path = "into-attr-derive", version="0.1.0"}
+dot-structures = { path = "dot-structures", version="0.1.0" }
+dot-generator = { path = "dot-generator", version="0.1.0" }
 tempfile = "3.2.0"
 [dev-dependencies]
