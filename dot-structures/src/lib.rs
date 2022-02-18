@@ -80,7 +80,6 @@ pub struct Edge {
     pub ty: EdgeTy,
     pub attributes: Vec<Attribute>,
 }
-
 impl Edge {
     fn add_attr(&mut self,attr:Attribute){
         self.attributes.push(attr)

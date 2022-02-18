@@ -67,6 +67,9 @@ macro_rules! node_id {
 }
 
 /// represents an id for node or subgraph in dot lang.
+/// #Arguments:
+///  - html - html format.
+///  - esc - escaped string. It allows the escaped quotes inside and also wraps the string to the quotas
 /// #Example:
 /// ```rust
 ///     fn id_test() {
@@ -76,14 +79,14 @@ macro_rules! node_id {
 ///         assert_eq!(id!(), Id::Anonymous("".to_string()));
 ///         assert_eq!(id!(html "<<abc>>"), Id::Html("<<abc>>".to_string()));
 ///         assert_eq!(id!("abc"), Id::Plain("abc".to_string()));
-///         assert_eq!(id!(esc "\"ab\\\"c\""), Id::Escaped("\"ab\\\"c\"".to_string()));
+///         assert_eq!(id!(esc r#"ab\"c"#"), Id::Escaped(r#"\"ab\"c\""#.to_string()));
 ///     }
 /// ```
 #[macro_export]
 macro_rules! id {
     () => { Id::Anonymous("".to_string()) };
     (html$e:expr) => { Id::Html(format!("{}",$e))};
-    (esc$e:expr) => { Id::Escaped(format!("{}",$e))};
+    (esc$e:expr) => { Id::Escaped(format!("\"{}\"",$e))};
     ($e:expr) => { Id::Plain(format!("{}",$e))};
 }
 
@@ -428,6 +431,6 @@ mod tests {
         assert_eq!(id!(), Id::Anonymous("".to_string()));
         assert_eq!(id!(html "<<abc>>"), Id::Html("<<abc>>".to_string()));
         assert_eq!(id!("abc"), Id::Plain("abc".to_string()));
-        assert_eq!(id!(esc "\"ab\\\"c\""), Id::Escaped("\"ab\\\"c\"".to_string()));
+        assert_eq!(id!(esc "ab\\\"c"), Id::Escaped("\"ab\\\"c\"".to_string()));
     }
 }

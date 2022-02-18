@@ -77,7 +77,7 @@ fn output_test() {
             ),
             edge!(node_id!("a1") => node_id!(esc "a2"))
         );
-    let graph_svg = exec(g, PrinterContext::default(), vec![
+    let graph_svg = exec(g, &mut PrinterContext::default(), vec![
         CommandArg::Format(Format::Svg),
     ]).unwrap();
 }

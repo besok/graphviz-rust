@@ -235,7 +235,7 @@ mod test {
         assert_eq!(result, id!("abc_a"));
 
         let result = process_id(_parse("\"ab\\\"c\"", Rule::id));
-        assert_eq!(result, id!(esc "\"ab\\\"c\""));
+        assert_eq!(result, id!(esc "ab\\\"c"));
 
         let result = process_id(_parse(r#"<<IMG SCALE="FAL" SRC="value" /></B>abc </B>>"#, Rule::id));
         assert_eq!(result, id!(html r#"<<IMG SCALE="FAL" SRC="value" /></B>abc </B>>"#));
