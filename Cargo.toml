@@ -9,7 +9,7 @@ homepage = "https://github.com/besok/graphviz-rust"
 repository = "https://github.com/besok/graphviz-rust"
 readme = "README.md"
 keywords = ["graph", "graphviz", "dotfile", "dot", "visualize"]
-categories = ["parsing tools","data structures","api bindings"]
+categories = ["parsing","visualization","api-bindings"]
 
 
 [dependencies]
