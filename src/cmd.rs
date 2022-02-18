@@ -27,7 +27,7 @@
 //!            ),
 //!            edge!(node_id!("a1") => node_id!(esc "a2"))
 //!        );
-//!        let graph_svg = exec(g, PrinterContext::default(), vec![
+//!        let graph_svg = exec(g, &mut PrinterContext::default(), vec![
 //!            CommandArg::Format(Format::Svg),
 //!        ]).unwrap();
 //!
@@ -36,7 +36,7 @@
 //!     let mut g = graph!(id!("id"));
 //!         let mut ctx = PrinterContext::default();
 //!         ctx.always_inline();
-//!         let empty = exec(g, ctx, vec![
+//!         let empty = exec(g, &mut ctx, vec![
 //!            CommandArg::Format(Format::Svg),
 //!            CommandArg::Output("1.svg".to_string())
 //!        ]).unwrap();
