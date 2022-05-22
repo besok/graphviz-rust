@@ -27,7 +27,7 @@ pub struct Port(pub Option<Id>, pub Option<String>);
 /// the component represents a id in the language.
 /// The Anonymous is a virtual component to keep the other components consistent in case
 /// when a node or subgraph is anonymous
-#[derive(Debug, Clone,PartialEq,Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Id {
     Html(String),
     Escaped(String),
@@ -80,8 +80,9 @@ pub struct Edge {
     pub ty: EdgeTy,
     pub attributes: Vec<Attribute>,
 }
+
 impl Edge {
-    fn add_attr(&mut self,attr:Attribute){
+    fn add_attr(&mut self, attr: Attribute) {
         self.attributes.push(attr)
     }
 }
@@ -93,6 +94,7 @@ pub enum EdgeTy {
     Pair(Vertex, Vertex),
     Chain(Vec<Vertex>),
 }
+
 /// the component represents the vital component, namely node in the lang.
 #[derive(Debug, PartialEq, Clone)]
 pub struct Node {
@@ -104,7 +106,7 @@ impl Node {
     pub fn new(id: NodeId, attributes: Vec<Attribute>) -> Self {
         Node { id, attributes }
     }
-    fn add_attr(&mut self,attr:Attribute){
+    fn add_attr(&mut self, attr: Attribute) {
         self.attributes.push(attr)
     }
 }
@@ -148,6 +150,7 @@ impl From<Subgraph> for Stmt {
         Stmt::Subgraph(v)
     }
 }
+
 /// the component represents a subgraph  in the lang.
 #[derive(PartialEq, Debug, Clone)]
 pub struct Subgraph {
@@ -156,7 +159,7 @@ pub struct Subgraph {
 }
 
 impl Subgraph {
-    fn add_stmt(&mut self,stmt:Stmt){
+    fn add_stmt(&mut self, stmt: Stmt) {
         self.stmts.push(stmt)
     }
 }
@@ -179,18 +182,19 @@ impl From<Subgraph> for Vertex {
         Vertex::S(v)
     }
 }
+
 /// the component represents a graph in the lang.
-#[derive(Debug, PartialEq,Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Graph {
     Graph { id: Id, strict: bool, stmts: Vec<Stmt> },
     DiGraph { id: Id, strict: bool, stmts: Vec<Stmt> },
 }
 
 impl Graph {
-    pub fn add_stmt(&mut self,stmt:Stmt){
+    pub fn add_stmt(&mut self, stmt: Stmt) {
         match self {
-            Graph::Graph { stmts,.. } => {stmts.push(stmt)}
-            Graph::DiGraph { stmts,.. } => {stmts.push(stmt)}
+            Graph::Graph { stmts, .. } => { stmts.push(stmt) }
+            Graph::DiGraph { stmts, .. } => { stmts.push(stmt) }
         }
     }
 }

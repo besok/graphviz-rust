@@ -76,6 +76,10 @@
 //!
 #![allow(non_camel_case_types)]
 #![allow(dead_code)]
+pub extern crate dot_generator;
+pub extern crate dot_structures;
+pub extern crate into_attr;
+pub extern crate into_attr_derive;
 
 use std::io;
 use dot_structures::*;
