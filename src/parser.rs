@@ -239,7 +239,25 @@ mod test {
 
         let result = process_id(_parse(r#"<<IMG SCALE="FAL" SRC="value" /></B>abc </B>>"#, Rule::id));
         assert_eq!(result, id!(html r#"<<IMG SCALE="FAL" SRC="value" /></B>abc </B>>"#));
+
+        let result = process_id(_parse(r#"<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
+                          <TR><TD>left</TD><TD PORT="f1">mid dle</TD><TD PORT="f2">right</TD></TR>
+                        </TABLE>>"#, Rule::id));
+        assert_eq!(result, id!(html r#"<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
+                          <TR><TD>left</TD><TD PORT="f1">mid dle</TD><TD PORT="f2">right</TD></TR>
+                        </TABLE>>"#));
+        let result = process_id(_parse(r#"<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
+                          <TR><TD>left</TD><TD PORT="f1">mid dle</TD><TD PORT="f2">right</TD></TR>
+                        </TABLE>
+                        >"#, Rule::id));
+        assert_eq!(result, id!(html r#"<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
+                          <TR><TD>left</TD><TD PORT="f1">mid dle</TD><TD PORT="f2">right</TD></TR>
+                        </TABLE>
+                        >"#));
     }
+
 
     #[test]
     fn attr_test() {
@@ -360,6 +378,79 @@ mod test {
 
         assert_eq!(result, stmt!( edge!(node_id!("node")=> node_id!("node1")=>node_id!("node2"); attr!("a","2"))));
     }
+    #[test]
+    fn graph_html_test() {
+        let g: Graph = parse(r#"
+        digraph G {
+        a [ label=< <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
+                    <TR><TD ROWSPAN="3" BGCOLOR="yellow">class</TD></TR>
+                    <TR><TD PORT="here" BGCOLOR="lightblue">qualifier</TD></TR>
+                    </TABLE>>
+           ]
+        b [shape=ellipse style=filled
+            label=<
+            <TABLE BGCOLOR="bisque">
+            <TR>
+                <TD COLSPAN="3">elephant</TD>
+                <TD ROWSPAN="2" BGCOLOR="chartreuse"
+                VALIGN="bottom" ALIGN="right">two</TD>
+            </TR>
+            <TR>
+                <TD COLSPAN="2" ROWSPAN="2">
+                    <TABLE BGCOLOR="grey">
+                        <TR><TD>corn</TD></TR>
+                        <TR><TD BGCOLOR="yellow">c</TD></TR>
+                        <TR><TD>f</TD></TR>
+                  </TABLE>
+            </TD>
+            <TD BGCOLOR="white">penguin</TD>
+            </TR>
+            <TR>
+            <TD COLSPAN="2" BORDER="4" ALIGN="right" PORT="there">4</TD>
+            </TR>
+            </TABLE>>
+            ]
+        c [ label=<long line 1<BR/>line 2<BR ALIGN="LEFT"/>line 3<BR ALIGN="RIGHT"/>> ]
+       }
+        "#).unwrap();
+
+        assert_eq!(
+            g,
+            graph!(di id!("G");
+                node!("a"; attr!("label",html r#"< <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
+                    <TR><TD ROWSPAN="3" BGCOLOR="yellow">class</TD></TR>
+                    <TR><TD PORT="here" BGCOLOR="lightblue">qualifier</TD></TR>
+                    </TABLE>>"#)),
+                node!("b";
+                        attr!("shape","ellipse"),
+                        attr!("style","filled"),
+                        attr!("label",html r#"<
+            <TABLE BGCOLOR="bisque">
+            <TR>
+                <TD COLSPAN="3">elephant</TD>
+                <TD ROWSPAN="2" BGCOLOR="chartreuse"
+                VALIGN="bottom" ALIGN="right">two</TD>
+            </TR>
+            <TR>
+                <TD COLSPAN="2" ROWSPAN="2">
+                    <TABLE BGCOLOR="grey">
+                        <TR><TD>corn</TD></TR>
+                        <TR><TD BGCOLOR="yellow">c</TD></TR>
+                        <TR><TD>f</TD></TR>
+                  </TABLE>
+            </TD>
+            <TD BGCOLOR="white">penguin</TD>
+            </TR>
+            <TR>
+            <TD COLSPAN="2" BORDER="4" ALIGN="right" PORT="there">4</TD>
+            </TR>
+            </TABLE>>"#)
+                ),
+               node!("c"; attr!("label", html r#"<long line 1<BR/>line 2<BR ALIGN="LEFT"/>line 3<BR ALIGN="RIGHT"/>>"#))
+
+            )
+        )
+    }
 
     #[test]
     fn graph_test() {
@@ -392,6 +483,7 @@ mod test {
             )
         )
     }
+
 
     #[test]
     fn comments_test() {
