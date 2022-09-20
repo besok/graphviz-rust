@@ -1,4 +1,4 @@
-WHITESPACE = _{ " " | "\t" | "\r\n" | "\n" | NEWLINE}
+WHITESPACE = _{ " " | "\t" | "\r\n" | "\n" }
 COMMENT    = _{("/*" ~ (!"*/" ~ ANY)* ~ "*/") | (("#" | "//") ~ (!NEWLINE ~ ANY)* ~ NEWLINE) }
 word = _{ ('a'..'z' | 'A'..'Z')+ }
 arr = _{"->" | "--"}
@@ -11,7 +11,7 @@ char = _{
 inner = ${ char* }
 number = ${"-"? ~ (("0" | ASCII_NONZERO_DIGIT ~ ASCII_DIGIT*) ~ ("." ~ ASCII_DIGIT+)? | ("." ~ ASCII_DIGIT+))}
 string_qt = ${ "\"" ~ inner ~ "\"" }
-html = ${"<" ~ ( "<" |  word | WHITESPACE | NEWLINE | COMMENT | "-" | "!"| ":" |number | string_qt | "/" | "=" | "<" | (">" ~ WHITESPACE* ~ !">"))+ ~ ">" ~ WHITESPACE* ~ ">"}
+html = ${"<" ~ (!(">" ~ WHITESPACE* ~">") ~ ANY)+ ~ ">" ~ WHITESPACE* ~ ">"}
 plain = ${(word ~ (word | ASCII_DIGIT | "_")*) | number}
 
 

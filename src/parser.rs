@@ -246,6 +246,7 @@ mod test {
         assert_eq!(result, id!(html r#"<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
                           <TR><TD>left</TD><TD PORT="f1">mid dle</TD><TD PORT="f2">right</TD></TR>
                         </TABLE>>"#));
+
         let result = process_id(_parse(r#"<
         <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
                           <TR><TD>left</TD><TD PORT="f1">mid dle</TD><TD PORT="f2">right</TD></TR>
@@ -256,6 +257,8 @@ mod test {
                           <TR><TD>left</TD><TD PORT="f1">mid dle</TD><TD PORT="f2">right</TD></TR>
                         </TABLE>
                         >"#));
+        let result = process_id(_parse(r#"<<tr><td>address_id:!@#$%^&*()_+/.,"\| int</td></tr>>"#, Rule::id));
+        assert_eq!(result, id!(html r#"<<tr><td>address_id:!@#$%^&*()_+/.,"\| int</td></tr>>"#));
     }
 
 
@@ -411,6 +414,7 @@ mod test {
             </TABLE>>
             ]
         c [ label=<long line 1<BR/>line 2<BR ALIGN="LEFT"/>line 3<BR ALIGN="RIGHT"/>> ]
+        d [ label=<<tr><td>address_id: int</td></tr>> ]
        }
         "#).unwrap();
 
@@ -446,7 +450,8 @@ mod test {
             </TR>
             </TABLE>>"#)
                 ),
-               node!("c"; attr!("label", html r#"<long line 1<BR/>line 2<BR ALIGN="LEFT"/>line 3<BR ALIGN="RIGHT"/>>"#))
+               node!("c"; attr!("label", html r#"<long line 1<BR/>line 2<BR ALIGN="LEFT"/>line 3<BR ALIGN="RIGHT"/>>"#)),
+               node!("d"; attr!("label", html r#"<<tr><td>address_id: int</td></tr>>"#))
 
             )
         )
