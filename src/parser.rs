@@ -3,11 +3,8 @@
 //! The grammar can be viewed in `/grammar/dot.pest`
 //!
 //! ['notation']: https://graphviz.org/doc/info/lang.html
-use std::collections::HashMap;
-use std::iter::Map;
 use pest::error::Error;
 use pest::iterators::{Pair, Pairs};
-use pest::RuleType;
 use crate::pest::Parser;
 use dot_structures::*;
 
@@ -68,7 +65,7 @@ fn process_port(port: Pair<Rule>) -> Port {
         match r.as_rule() {
             Rule::compass => com = Some(r.as_str().to_string()),
             Rule::id => {
-                id = Some(process_id(r)).map(|id| id);
+                id = Some(process_id(r));
                 if let Some(r) = port_r.next() {
                     com = Some(r.as_str().to_string());
                 }
@@ -129,7 +126,7 @@ fn process_vertex(rule: Pair<Rule>) -> Vertex {
     }
 }
 
-fn process_edge<'a>(rule: Pair<Rule>) -> Vec<Vertex> {
+fn process_edge(rule: Pair<Rule>) -> Vec<Vertex> {
     let mut edge_r = rule.into_inner();
     let h = process_vertex(edge_r.next().unwrap());
     let mut chain = vec![h];
@@ -187,10 +184,7 @@ fn process_graph(rule: Pair<Rule>) -> Graph {
         _ => false
     };
 
-    let is_di = match graph_r.next().map(|r| r.as_str()) {
-        Some("digraph") => true,
-        _ => false
-    };
+    let is_di =  matches!(graph_r.next().map(|r| r.as_str()), Some("digraph"));
 
     let id = match graph_r.peek().map(|r| {
         r.as_rule()

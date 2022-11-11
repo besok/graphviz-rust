@@ -5,4 +5,6 @@
     * Change contract for the context* 
 **`0.3.0`**
     * Fix bugs with html tags in labels
+**`0.4.0`**
+    * Add method exec_dot
 
