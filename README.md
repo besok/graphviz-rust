@@ -197,7 +197,7 @@ fn subgraph_test() {
 }
 ```
 
-The module allows adjusting some of the parameters such as indent step or line separator using `PrinterContext`:
+The module allows adjusting some parameters such as indent step or line separator using `PrinterContext`:
 
 ```rust
      fn ctx() {
@@ -211,10 +211,11 @@ The module allows adjusting some of the parameters such as indent step or line s
 }
 ```
 
-### External formats anf others using cmd engine
+### External formats and others using cmd engine
 
 The library provides an ability to use [command commands](https://graphviz.org/doc/info/command.html) from the rust
-code. The details are denoted in `graphviz_rust::{exec}`.
+code. 
+The details are denoted in `graphviz_rust::{exec}` and `graphviz_rust::{exec_dot}` methods
 
 ```rust
   fn output_test() {
@@ -226,4 +227,11 @@ code. The details are denoted in `graphviz_rust::{exec}`.
 }
 ```
 
-*Note: to have it successfully up and running the [command client](https://graphviz.org/download/) should be installed*
+
+### Caveats
+
+#### The [command client](https://graphviz.org/download/) should be installed
+Since, the library operates with a cmd client to execute the commands, the client should be installed beforehand,
+otherwise, the errors like: `No file or directory found` or `program not found` (depending on the OS) 
+will be popped up.
+

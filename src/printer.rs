@@ -62,7 +62,7 @@ impl PrinterContext {
     /// set a specific line sep
     pub fn with_line_sep(&mut self, sep: String) -> &mut PrinterContext {
         self.l_s = sep.clone();
-        self.l_s_m = sep.clone();
+        self.l_s_m = sep;
         self
     }
     /// set a line len enough to fit in a line
@@ -79,7 +79,7 @@ impl PrinterContext {
             indent_step,
             inline_size,
             l_s: line_s.clone(),
-            l_s_i: line_s.clone(),
+            l_s_i: line_s,
             l_s_m: "".to_string(),
         }
     }
@@ -233,7 +233,7 @@ impl DotPrinter for Graph {
                 let body = stmts.print(ctx);
                 format!("strict graph {} {{{}{}{}}}", id.print(ctx), ctx.l_s, body, ctx.l_s)
             }
-            Graph::Graph { id, strict, stmts } => {
+            Graph::Graph { id, strict:_, stmts } => {
                 ctx.is_digraph = false;
                 let body = stmts.print(ctx);
                 format!("graph {} {{{}{}{}}}", id.print(ctx), ctx.l_s, body, ctx.l_s)
@@ -243,7 +243,7 @@ impl DotPrinter for Graph {
                 let body = stmts.print(ctx);
                 format!("strict digraph {} {{{}{}{}}}", id.print(ctx), ctx.l_s, body, ctx.l_s)
             }
-            Graph::DiGraph { id, strict, stmts } => {
+            Graph::DiGraph { id, strict:_, stmts } => {
                 ctx.is_digraph = true;
                 let body = stmts.print(ctx);
                 format!("digraph {} {{{}{}{}}}", id.print(ctx), ctx.l_s, body, ctx.l_s)
@@ -282,9 +282,9 @@ fn print_edge(edge: &Edge, ctx: &mut PrinterContext) -> String {
             format!("{} {} {} {}", l.print(ctx), bond, r.print(ctx), attributes.print(ctx))
         }
         Edge { ty: EdgeTy::Chain(vs), attributes } => {
-            let mut iter = vs.into_iter();
+            let mut iter = vs.iter();
             let h = iter.next().unwrap().print(ctx);
-            let mut chain = format!("{}", h);
+            let mut chain = h;
             for el in iter {
                 chain = format!("{} {} {}", chain, bond, el.print(ctx))
             }

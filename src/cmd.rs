@@ -44,9 +44,8 @@
 //!  }
 //! ```
 use tempfile::NamedTempFile;
-use std::io::{self, Error, Write};
+use std::io::{self, Write};
 use std::process::{Command, Output};
-use std::str;
 
 pub(crate) fn exec(graph: String, args: Vec<CommandArg>) -> io::Result<String> {
     let args = args.into_iter().map(|a| a.prepare()).collect();
@@ -63,7 +62,7 @@ pub(crate) fn exec(graph: String, args: Vec<CommandArg>) -> io::Result<String> {
 }
 
 
-fn do_exec(input: String, args: Vec<String>) -> std::io::Result<Output> {
+fn do_exec(input: String, args: Vec<String>) -> io::Result<Output> {
     let mut command = Command::new("dot");
 
     for arg in args {
@@ -124,7 +123,7 @@ impl CommandArg {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug,Copy, Clone)]
 pub enum Layout {
     Dot,
     Neato,
@@ -137,7 +136,7 @@ pub enum Layout {
 }
 
 
-#[derive(Debug)]
+#[derive(Debug,Copy, Clone)]
 pub enum Format {
     Bmp,
     Cgimage,

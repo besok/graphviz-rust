@@ -226,7 +226,7 @@ generate_attr!(struct fontcolor for GraphAttributes,EdgeAttributes,SubgraphAttri
 generate_attr!(struct labelfontcolor for EdgeAttributes; color_name;color_name::black);
 generate_attr!(struct pencolor for SubgraphAttributes; color_name;color_name::black);
 
-/// support of the x11 color scheme
+// support of the x11 color scheme
 generate_attr!(enum color_name;
     //region values
     aliceblue,antiquewhite,antiquewhite1,antiquewhite2,antiquewhite3,antiquewhite4,aqua,aquamarine,
