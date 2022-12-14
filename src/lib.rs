@@ -10,89 +10,94 @@
 //!
 //! # Examples:
 //! ```rust
-//! use dot_structures::*;
 //! use dot_generator::*;
-//! use graphviz_rust::{exec,parse, exec_dot};
-//! use graphviz_rust::cmd::{CommandArg, Format};
-//! use graphviz_rust::printer::{PrinterContext,DotPrinter};
-//! use graphviz_rust::attributes::*;
+//! use dot_structures::*;
+//! use graphviz_rust::{
+//!     attributes::*,
+//!     cmd::{CommandArg, Format},
+//!     exec, exec_dot, parse,
+//!     printer::{DotPrinter, PrinterContext},
+//! };
 //!
 //! fn parse_test() {
-//!        let g: Graph = parse(r#"
-//!        strict digraph t {
-//!            aa[color=green]
-//!            subgraph v {
-//!                aa[shape=square]
-//!                subgraph vv{a2 -> b2}
-//!                aaa[color=red]
-//!                aaa -> bbb
-//!            }
-//!            aa -> be -> subgraph v { d -> aaa}
-//!            aa -> aaa -> v
-//!        }
-//!        "#).unwrap();
+//!     let g: Graph = parse(
+//!         r#"
+//!         strict digraph t {
+//!             aa[color=green]
+//!             subgraph v {
+//!                 aa[shape=square]
+//!                 subgraph vv{a2 -> b2}
+//!                 aaa[color=red]
+//!                 aaa -> bbb
+//!             }
+//!             aa -> be -> subgraph v { d -> aaa}
+//!             aa -> aaa -> v
+//!         }
+//!         "#,
+//!     )
+//!     .unwrap();
 //!
-//!        assert_eq!(
-//!            g,
-//!            graph!(strict di id!("t");
-//!              node!("aa";attr!("color","green")),
-//!              subgraph!("v";
-//!                node!("aa"; attr!("shape","square")),
-//!                subgraph!("vv"; edge!(node_id!("a2") => node_id!("b2"))),
-//!                node!("aaa";attr!("color","red")),
-//!                edge!(node_id!("aaa") => node_id!("bbb"))
-//!                ),
-//!              edge!(node_id!("aa") => node_id!("be") => subgraph!("v"; edge!(node_id!("d") => node_id!("aaa")))),
-//!              edge!(node_id!("aa") => node_id!("aaa") => node_id!("v"))
-//!            )
-//!        )
-//!    }
+//!     assert_eq!(
+//!         g,
+//!         graph!(strict di id!("t");
+//!           node!("aa";attr!("color","green")),
+//!           subgraph!("v";
+//!             node!("aa"; attr!("shape","square")),
+//!             subgraph!("vv"; edge!(node_id!("a2") => node_id!("b2"))),
+//!             node!("aaa";attr!("color","red")),
+//!             edge!(node_id!("aaa") => node_id!("bbb"))
+//!             ),
+//!           edge!(node_id!("aa") => node_id!("be") => subgraph!("v"; edge!(node_id!("d") => node_id!("aaa")))),
+//!           edge!(node_id!("aa") => node_id!("aaa") => node_id!("v"))
+//!         )
+//!     )
+//! }
 //!
 //! fn print_test() {
-//!        let mut g = graph!(strict di id!("id"));
-//!        assert_eq!("strict digraph id {}".to_string(), g.print(&mut PrinterContext::default()));
-//!    }
+//!     let mut g = graph!(strict di id!("id"));
+//!     assert_eq!(
+//!         "strict digraph id {}".to_string(),
+//!         g.print(&mut PrinterContext::default())
+//!     );
+//! }
 //!
-//!  fn output_test(){
+//! fn output_test() {
 //!     let mut g = graph!(id!("id");
-//!             node!("nod"),
-//!             subgraph!("sb";
-//!                 edge!(node_id!("a") => subgraph!(;
-//!                    node!("n";
-//!                    NodeAttributes::color(color_name::black), NodeAttributes::shape(shape::egg))
-//!                ))
-//!            ),
-//!            edge!(node_id!("a1") => node_id!(esc "a2"))
-//!        );
-//!        let graph_svg = exec(g, &mut PrinterContext::default(), vec![
-//!            CommandArg::Format(Format::Svg),
-//!        ]).unwrap();
-//!
-//!  }
-//!  fn output_exec_from_test(){
+//!          node!("nod"),
+//!          subgraph!("sb";
+//!              edge!(node_id!("a") => subgraph!(;
+//!                 node!("n";
+//!                 NodeAttributes::color(color_name::black), NodeAttributes::shape(shape::egg))
+//!             ))
+//!         ),
+//!         edge!(node_id!("a1") => node_id!(esc "a2"))
+//!     );
+//!     let graph_svg = exec(
+//!         g,
+//!         &mut PrinterContext::default(),
+//!         vec![CommandArg::Format(Format::Svg)],
+//!     )
+//!     .unwrap();
+//! }
+//! fn output_exec_from_test() {
 //!     let mut g = graph!(id!("id");
-//!             node!("nod"),
-//!             subgraph!("sb";
-//!                 edge!(node_id!("a") => subgraph!(;
-//!                    node!("n";
-//!                    NodeAttributes::color(color_name::black), NodeAttributes::shape(shape::egg))
-//!                ))
-//!            ),
-//!            edge!(node_id!("a1") => node_id!(esc "a2"))
-//!        );
-//!        let dot = g.print(&mut PrinterContext::default());
-//!        println!("{}",dot);
-//!        let  format = Format::Svg;
+//!          node!("nod"),
+//!          subgraph!("sb";
+//!              edge!(node_id!("a") => subgraph!(;
+//!                 node!("n";
+//!                 NodeAttributes::color(color_name::black), NodeAttributes::shape(shape::egg))
+//!             ))
+//!         ),
+//!         edge!(node_id!("a1") => node_id!(esc "a2"))
+//!     );
+//!     let dot = g.print(&mut PrinterContext::default());
+//!     println!("{}", dot);
+//!     let format = Format::Svg;
 //!
-//!        let graph_svg = exec_dot(dot.clone(), vec![
-//!            CommandArg::Format(format),
-//!        ]).unwrap();
+//!     let graph_svg = exec_dot(dot.clone(), vec![CommandArg::Format(format)]).unwrap();
 //!
-//!         let graph_svg = exec_dot(dot, vec![
-//!            CommandArg::Format(format.clone()),
-//!        ]).unwrap();
-//!
-//!  }
+//!     let graph_svg = exec_dot(dot, vec![CommandArg::Format(format.clone())]).unwrap();
+//! }
 //! ```
 //!
 //! [`graphviz`]: https://graphviz.org/

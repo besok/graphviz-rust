@@ -103,7 +103,7 @@ straight accordance. The structures can be found in `dot_structures::*` and has 
 strict digraph t {                     : graph with t as id
         aa[color=green]                : node aa and attributes in []
         subgraph v {                   : subgraph v
-	        aa[shape=square]            : node aa in subgraph 
+	        aa[shape=square]            : node aa in subgraph
 	        subgraph vv{a2 -> b2}       : another subgraph carrying edge inside( a type of the edge is Pair)
 	        aaa[color=red]
 	        aaa -> subgraph { d -> aaa} : subgraph id is anonymous id
@@ -255,6 +255,4 @@ fn output_test() {
 
 #### The [command client](https://graphviz.org/download/) should be installed
 
-Since, the library operates with a cmd client to execute the commands, the client should be installed beforehand,
-otherwise, the errors like: `No file or directory found` or `program not found` (depending on the OS)
-will be popped up.
+Since, the library operates with a cmd client to execute the commands, the client should be installed beforehand, otherwise, the errors like: `No file or directory found` or `program not found` (depending on the OS) will be popped up.
