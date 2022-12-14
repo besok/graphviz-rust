@@ -3,15 +3,17 @@
 //! The grammar can be viewed in `/grammar/dot.pest`
 //!
 //! ['notation']: https://graphviz.org/doc/info/lang.html
-use pest::error::Error;
-use pest::iterators::{Pair, Pairs};
-use crate::pest::Parser;
 use dot_structures::*;
+use pest::{
+    error::Error,
+    iterators::{Pair, Pairs},
+};
+
+use crate::pest::Parser;
 
 #[derive(Parser)]
 #[grammar = "grammar/dot.pest"]
 struct DotParser;
-
 
 pub(crate) fn parse(dot: &str) -> Result<Graph, String> {
     do_parse(dot, Rule::file)
@@ -24,7 +26,9 @@ fn down(rule: Pair<Rule>) -> Pair<Rule> {
     rule.into_inner().next().unwrap()
 }
 
-fn do_parse(input: &str, ty: Rule) -> Result<Pairs<Rule>, Error<Rule>> { DotParser::parse(ty, input) }
+fn do_parse(input: &str, ty: Rule) -> Result<Pairs<Rule>, Error<Rule>> {
+    DotParser::parse(ty, input)
+}
 
 fn process_attr_list(rule: Pair<Rule>) -> Vec<Attribute> {
     let mut attrs = vec![];
@@ -52,7 +56,7 @@ fn process_id(rule: Pair<Rule>) -> Id {
         Rule::plain => Id::Plain(val),
         Rule::html => Id::Html(val),
         Rule::string_qt => Id::Escaped(val),
-        p => panic!("unreachable, got {:?}", p)
+        p => panic!("unreachable, got {:?}", p),
     }
 }
 
@@ -70,7 +74,7 @@ fn process_port(port: Pair<Rule>) -> Port {
                     com = Some(r.as_str().to_string());
                 }
             }
-            _ => panic!("unreachable!")
+            _ => panic!("unreachable!"),
         }
         Port(id, com)
     } else {
@@ -92,7 +96,7 @@ fn process_subgraph(rule: Pair<Rule>) -> Subgraph {
     let mut sub_r = rule.into_inner();
     let id = match sub_r.peek().map(|r| r.as_rule()) {
         Some(Rule::id) => process_id(sub_r.next().unwrap()),
-        _ => Id::Anonymous(rand::random::<usize>().to_string())
+        _ => Id::Anonymous(rand::random::<usize>().to_string()),
     };
     let stmts = process_body(sub_r.next().unwrap());
     Subgraph { id, stmts }
@@ -111,9 +115,15 @@ fn process_node(rule: Pair<Rule>) -> Node {
     let mut node_r = rule.into_inner();
     let id = process_node_id(node_r.next().unwrap());
     if let Some(r) = node_r.next() {
-        Node { id, attributes: process_attr_list(r) }
+        Node {
+            id,
+            attributes: process_attr_list(r),
+        }
     } else {
-        Node { id, attributes: vec![] }
+        Node {
+            id,
+            attributes: vec![],
+        }
     }
 }
 
@@ -122,7 +132,7 @@ fn process_vertex(rule: Pair<Rule>) -> Vertex {
     match vertex_r.as_rule() {
         Rule::node_id => Vertex::N(process_node_id(vertex_r)),
         Rule::subgraph => Vertex::S(process_subgraph(vertex_r)),
-        _ => unreachable!("")
+        _ => unreachable!(""),
     }
 }
 
@@ -149,9 +159,15 @@ fn process_edge_stmt(rule: Pair<Rule>) -> Edge {
     };
 
     if let Some(attr_r) = edge_r.next() {
-        Edge { ty, attributes: process_attr_list(attr_r) }
+        Edge {
+            ty,
+            attributes: process_attr_list(attr_r),
+        }
     } else {
-        Edge { ty, attributes: vec![] }
+        Edge {
+            ty,
+            attributes: vec![],
+        }
     }
 }
 
@@ -170,7 +186,7 @@ fn process_stmt(rule: Pair<Rule>) -> Stmt {
         Rule::node => Stmt::Node(process_node(stmt_r)),
         Rule::bare_attr => Stmt::Attribute(process_bare_attr(stmt_r)),
         Rule::edge_stmt => Stmt::Edge(process_edge_stmt(stmt_r)),
-        _ => unreachable!()
+        _ => unreachable!(),
     }
 }
 
@@ -181,16 +197,14 @@ fn process_graph(rule: Pair<Rule>) -> Graph {
             graph_r.next();
             true
         }
-        _ => false
+        _ => false,
     };
 
-    let is_di =  matches!(graph_r.next().map(|r| r.as_str()), Some("digraph"));
+    let is_di = matches!(graph_r.next().map(|r| r.as_str()), Some("digraph"));
 
-    let id = match graph_r.peek().map(|r| {
-        r.as_rule()
-    }) {
+    let id = match graph_r.peek().map(|r| r.as_rule()) {
         Some(Rule::id) => process_id(graph_r.next().unwrap()),
-        _ => Id::Anonymous(rand::random::<usize>().to_string())
+        _ => Id::Anonymous(rand::random::<usize>().to_string()),
     };
 
     let stmts = process_body(graph_r.next().unwrap());
@@ -203,25 +217,29 @@ fn process_graph(rule: Pair<Rule>) -> Graph {
 
 #[cfg(test)]
 mod test {
-    use pest::error::Error;
-    use pest::iterators::{Pair, Pairs};
-    use pest::RuleType;
-
-
-    use crate::parser::{do_parse, DotParser, down, parse, process_attr, process_attr_list, process_attr_stmt, process_edge, process_edge_stmt, process_id, process_node, process_node_id, process_stmt, process_vertex, Stmt, Vertex};
-    use crate::parser::Rule;
-    use crate::pest::Parser;
-
-    use dot_generator::{id, port, attr, node, stmt, subgraph, graph, edge, node_id};
+    use dot_generator::{attr, edge, graph, id, node, node_id, port, stmt, subgraph};
     use dot_structures::*;
+    use pest::{
+        error::Error,
+        iterators::{Pair, Pairs},
+        RuleType,
+    };
+
+    use crate::{
+        parser::{
+            do_parse, down, parse, process_attr, process_attr_list, process_attr_stmt,
+            process_edge, process_edge_stmt, process_id, process_node, process_node_id,
+            process_stmt, process_vertex, DotParser, Rule, Stmt, Vertex,
+        },
+        pest::Parser,
+    };
 
     fn _parse(input: &str, ty: Rule) -> Pair<Rule> {
         match do_parse(input, ty) {
             Ok(mut r) => r.next().unwrap(),
-            Err(e) => panic!("parsing err: {}", e)
+            Err(e) => panic!("parsing err: {}", e),
         }
     }
-
 
     #[test]
     fn id_test() {
@@ -231,37 +249,60 @@ mod test {
         let result = process_id(_parse("\"ab\\\"c\"", Rule::id));
         assert_eq!(result, id!(esc "ab\\\"c"));
 
-        let result = process_id(_parse(r#"<<IMG SCALE="FAL" SRC="value" /></B>abc </B>>"#, Rule::id));
-        assert_eq!(result, id!(html r#"<<IMG SCALE="FAL" SRC="value" /></B>abc </B>>"#));
+        let result = process_id(_parse(
+            r#"<<IMG SCALE="FAL" SRC="value" /></B>abc </B>>"#,
+            Rule::id,
+        ));
+        assert_eq!(
+            result,
+            id!(html r#"<<IMG SCALE="FAL" SRC="value" /></B>abc </B>>"#)
+        );
 
-        let result = process_id(_parse(r#"<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
+        let result = process_id(_parse(
+            r#"<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
                           <TR><TD>left</TD><TD PORT="f1">mid dle</TD><TD PORT="f2">right</TD></TR>
-                        </TABLE>>"#, Rule::id));
-        assert_eq!(result, id!(html r#"<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
+                        </TABLE>>"#,
+            Rule::id,
+        ));
+        assert_eq!(
+            result,
+            id!(html r#"<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
                           <TR><TD>left</TD><TD PORT="f1">mid dle</TD><TD PORT="f2">right</TD></TR>
-                        </TABLE>>"#));
+                        </TABLE>>"#)
+        );
 
-        let result = process_id(_parse(r#"<
+        let result = process_id(_parse(
+            r#"<
         <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
                           <TR><TD>left</TD><TD PORT="f1">mid dle</TD><TD PORT="f2">right</TD></TR>
                         </TABLE>
-                        >"#, Rule::id));
-        assert_eq!(result, id!(html r#"<
+                        >"#,
+            Rule::id,
+        ));
+        assert_eq!(
+            result,
+            id!(html r#"<
         <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
                           <TR><TD>left</TD><TD PORT="f1">mid dle</TD><TD PORT="f2">right</TD></TR>
                         </TABLE>
-                        >"#));
-        let result = process_id(_parse(r#"<<tr><td>address_id:!@#$%^&*()_+/.,"\| int</td></tr>>"#, Rule::id));
-        assert_eq!(result, id!(html r#"<<tr><td>address_id:!@#$%^&*()_+/.,"\| int</td></tr>>"#));
+                        >"#)
+        );
+        let result = process_id(_parse(
+            r#"<<tr><td>address_id:!@#$%^&*()_+/.,"\| int</td></tr>>"#,
+            Rule::id,
+        ));
+        assert_eq!(
+            result,
+            id!(html r#"<<tr><td>address_id:!@#$%^&*()_+/.,"\| int</td></tr>>"#)
+        );
     }
-
 
     #[test]
     fn attr_test() {
         let result = process_attr(_parse("a=1", Rule::attr));
-        assert_eq!(result, attr!("a","1"));
+        assert_eq!(result, attr!("a", "1"));
         let result = process_attr(_parse("a = 1 , ;", Rule::attr));
-        assert_eq!(result, attr!("a","1"));
+        assert_eq!(result, attr!("a", "1"));
     }
 
     #[test]
@@ -285,11 +326,11 @@ mod test {
         assert_eq!(result, expect);
 
         let result = process_node_id(_parse("abc:abc", Rule::node_id));
-        let expect = node_id!(id!("abc"), port!(  id!("abc")));
+        let expect = node_id!(id!("abc"), port!(id!("abc")));
         assert_eq!(result, expect);
 
         let result = process_node_id(_parse("abc:abc:n", Rule::node_id));
-        let expect = node_id!(id!("abc"), port!(id!("abc"),"n"));
+        let expect = node_id!(id!("abc"), port!(id!("abc"), "n"));
         assert_eq!(result, expect);
     }
 
@@ -317,7 +358,8 @@ mod test {
         ];
         assert_eq!(result, GraphAttributes::Node(attributes));
 
-        let result = process_attr_stmt(_parse("graph [a=1 , b=c ; d=<<abc>> e=e]", Rule::attr_stmt));
+        let result =
+            process_attr_stmt(_parse("graph [a=1 , b=c ; d=<<abc>> e=e]", Rule::attr_stmt));
         let attributes = vec![
             attr!("a", "1"),
             attr!("b", "c"),
@@ -347,20 +389,26 @@ mod test {
     #[test]
     fn edge_stmt_test() {
         let result = process_edge_stmt(_parse("node -> node1 -> node2[a=2]", Rule::edge_stmt));
-        assert_eq!(result, edge!(node_id!("node")=> node_id!("node1")=>node_id!("node2"); attr!("a","2")));
+        assert_eq!(
+            result,
+            edge!(node_id!("node")=> node_id!("node1")=>node_id!("node2"); attr!("a","2"))
+        );
 
         let result = process_edge_stmt(_parse("node -> subgraph sg{a -> b}[a=2]", Rule::edge_stmt));
 
-        assert_eq!(result, edge!(
-            node_id!("node") => subgraph!("sg";stmt!(edge!(node_id!("a") => node_id!("b"))));
-            attr!("a","2")
-        ));
+        assert_eq!(
+            result,
+            edge!(
+                node_id!("node") => subgraph!("sg";stmt!(edge!(node_id!("a") => node_id!("b"))));
+                attr!("a","2")
+            )
+        );
     }
 
     #[test]
     fn stmt_test() {
         let result = process_stmt(_parse("a=b", Rule::stmt));
-        assert_eq!(result, stmt!(attr!("a","b")));
+        assert_eq!(result, stmt!(attr!("a", "b")));
 
         let result = process_stmt(_parse("node [a=1 , b=c ; d=<<abc>> e=e]", Rule::stmt));
         let attributes = vec![
@@ -373,11 +421,15 @@ mod test {
 
         let result = process_stmt(_parse("node -> node1 -> node2[a=2]", Rule::stmt));
 
-        assert_eq!(result, stmt!( edge!(node_id!("node")=> node_id!("node1")=>node_id!("node2"); attr!("a","2"))));
+        assert_eq!(
+            result,
+            stmt!(edge!(node_id!("node")=> node_id!("node1")=>node_id!("node2"); attr!("a","2")))
+        );
     }
     #[test]
     fn graph_html_test() {
-        let g: Graph = parse(r#"
+        let g: Graph = parse(
+            r#"
         digraph G {
         a [ label=< <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
                     <TR><TD ROWSPAN="3" BGCOLOR="yellow">class</TD></TR>
@@ -410,7 +462,9 @@ mod test {
         c [ label=<long line 1<BR/>line 2<BR ALIGN="LEFT"/>line 3<BR ALIGN="RIGHT"/>> ]
         d [ label=<<tr><td>address_id: int</td></tr>> ]
        }
-        "#).unwrap();
+        "#,
+        )
+        .unwrap();
 
         assert_eq!(
             g,
@@ -453,7 +507,8 @@ mod test {
 
     #[test]
     fn graph_test() {
-        let g: Graph = parse(r#"
+        let g: Graph = parse(
+            r#"
         strict digraph t {
             aa[color=green]
             subgraph v {
@@ -465,7 +520,9 @@ mod test {
             aa -> be -> subgraph v { d -> aaa}
             aa -> aaa -> v
         }
-        "#).unwrap();
+        "#,
+        )
+        .unwrap();
 
         assert_eq!(
             g,
@@ -482,7 +539,6 @@ mod test {
             )
         )
     }
-
 
     #[test]
     fn comments_test() {

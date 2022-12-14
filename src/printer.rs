@@ -12,18 +12,20 @@
 //!         assert_eq!(s.print(&mut ctx), "subgraph id {\n    abc\n    a -- b \n}".to_string());
 //!     }
 //! ```
-use dot_structures::{Attribute, Edge, EdgeTy, Graph, GraphAttributes, Id, Node, NodeId, Port, Stmt, Subgraph, Vertex};
+use dot_structures::{
+    Attribute, Edge, EdgeTy, Graph, GraphAttributes, Id, Node, NodeId, Port, Stmt, Subgraph, Vertex,
+};
 
 /// Context allows to customize the output of the file.
 /// # Example:
 /// ```rust
-///     fn ctx(){
-///         use self::graphviz_rust::printer::PrinterContext;
+/// fn ctx() {
+///     use self::graphviz_rust::printer::PrinterContext;
 ///
-///         let mut ctx =PrinterContext::default();
-///         ctx.always_inline();
-///         ctx.with_indent_step(4);
-///     }
+///     let mut ctx = PrinterContext::default();
+///     ctx.always_inline();
+///     ctx.with_indent_step(4);
+/// }
 /// ```
 pub struct PrinterContext {
     /// internal flag which is decoupled from the graph
@@ -87,16 +89,26 @@ impl PrinterContext {
 
 impl PrinterContext {
     fn indent(&self) -> String {
-        if self.is_inline_on() { "".to_string() } else { " ".repeat(self.indent) }
+        if self.is_inline_on() {
+            "".to_string()
+        } else {
+            " ".repeat(self.indent)
+        }
     }
     fn indent_grow(&mut self) {
-        if !self.is_inline_on() { self.indent += self.indent_step }
+        if !self.is_inline_on() {
+            self.indent += self.indent_step
+        }
     }
     fn indent_shrink(&mut self) {
-        if !self.is_inline_on() { self.indent -= self.indent_step }
+        if !self.is_inline_on() {
+            self.indent -= self.indent_step
+        }
     }
 
-    fn is_inline_on(&self) -> bool { self.l_s == self.l_s_i }
+    fn is_inline_on(&self) -> bool {
+        self.l_s == self.l_s_i
+    }
     fn inline_mode(&mut self) {
         self.l_s = self.l_s_i.clone()
     }
@@ -156,7 +168,7 @@ impl DotPrinter for Port {
             Port(Some(id), Some(d)) => format!(":{}:{}", id.print(ctx), d),
             Port(None, Some(d)) => format!(":{}", d),
             Port(Some(id), None) => format!(":{}", id.print(ctx)),
-            _ => unreachable!("")
+            _ => unreachable!(""),
         }
     }
 }
@@ -165,7 +177,7 @@ impl DotPrinter for NodeId {
     fn print(&self, ctx: &mut PrinterContext) -> String {
         match self {
             NodeId(id, None) => id.print(ctx),
-            NodeId(id, Some(port)) => [id.print(ctx), port.print(ctx)].join("")
+            NodeId(id, Some(port)) => [id.print(ctx), port.print(ctx)].join(""),
         }
     }
 }
@@ -173,7 +185,7 @@ impl DotPrinter for NodeId {
 impl DotPrinter for Attribute {
     fn print(&self, ctx: &mut PrinterContext) -> String {
         match self {
-            Attribute(l, r) => format!("{}={}", l.print(ctx), r.print(ctx))
+            Attribute(l, r) => format!("{}={}", l.print(ctx), r.print(ctx)),
         }
     }
 }
@@ -181,7 +193,9 @@ impl DotPrinter for Attribute {
 impl DotPrinter for Vec<Attribute> {
     fn print(&self, ctx: &mut PrinterContext) -> String {
         let attrs: Vec<String> = self.iter().map(|e| e.print(ctx)).collect();
-        if attrs.is_empty() { "".to_string() } else {
+        if attrs.is_empty() {
+            "".to_string()
+        } else {
             format!("[{}]", attrs.join(","))
         }
     }
@@ -231,9 +245,19 @@ impl DotPrinter for Graph {
             Graph::Graph { id, strict, stmts } if *strict => {
                 ctx.is_digraph = false;
                 let body = stmts.print(ctx);
-                format!("strict graph {} {{{}{}{}}}", id.print(ctx), ctx.l_s, body, ctx.l_s)
+                format!(
+                    "strict graph {} {{{}{}{}}}",
+                    id.print(ctx),
+                    ctx.l_s,
+                    body,
+                    ctx.l_s
+                )
             }
-            Graph::Graph { id, strict:_, stmts } => {
+            Graph::Graph {
+                id,
+                strict: _,
+                stmts,
+            } => {
                 ctx.is_digraph = false;
                 let body = stmts.print(ctx);
                 format!("graph {} {{{}{}{}}}", id.print(ctx), ctx.l_s, body, ctx.l_s)
@@ -241,12 +265,28 @@ impl DotPrinter for Graph {
             Graph::DiGraph { id, strict, stmts } if *strict => {
                 ctx.is_digraph = true;
                 let body = stmts.print(ctx);
-                format!("strict digraph {} {{{}{}{}}}", id.print(ctx), ctx.l_s, body, ctx.l_s)
+                format!(
+                    "strict digraph {} {{{}{}{}}}",
+                    id.print(ctx),
+                    ctx.l_s,
+                    body,
+                    ctx.l_s
+                )
             }
-            Graph::DiGraph { id, strict:_, stmts } => {
+            Graph::DiGraph {
+                id,
+                strict: _,
+                stmts,
+            } => {
                 ctx.is_digraph = true;
                 let body = stmts.print(ctx);
-                format!("digraph {} {{{}{}{}}}", id.print(ctx), ctx.l_s, body, ctx.l_s)
+                format!(
+                    "digraph {} {{{}{}{}}}",
+                    id.print(ctx),
+                    ctx.l_s,
+                    body,
+                    ctx.l_s
+                )
             }
         }
     }
@@ -278,10 +318,22 @@ impl DotPrinter for Stmt {
 fn print_edge(edge: &Edge, ctx: &mut PrinterContext) -> String {
     let bond = if ctx.is_digraph { "->" } else { "--" };
     match edge {
-        Edge { ty: EdgeTy::Pair(l, r), attributes } => {
-            format!("{} {} {} {}", l.print(ctx), bond, r.print(ctx), attributes.print(ctx))
+        Edge {
+            ty: EdgeTy::Pair(l, r),
+            attributes,
+        } => {
+            format!(
+                "{} {} {} {}",
+                l.print(ctx),
+                bond,
+                r.print(ctx),
+                attributes.print(ctx)
+            )
         }
-        Edge { ty: EdgeTy::Chain(vs), attributes } => {
+        Edge {
+            ty: EdgeTy::Chain(vs),
+            attributes,
+        } => {
             let mut iter = vs.iter();
             let h = iter.next().unwrap().print(ctx);
             let mut chain = h;
@@ -308,8 +360,9 @@ impl DotPrinter for Edge {
 
 #[cfg(test)]
 mod tests {
-    use dot_generator::{id, port, attr, node, stmt, subgraph, graph, edge, node_id};
+    use dot_generator::{attr, edge, graph, id, node, node_id, port, stmt, subgraph};
     use dot_structures::*;
+
     use crate::printer::{DotPrinter, PrinterContext};
 
     #[test]
@@ -323,7 +376,7 @@ mod tests {
 
     #[test]
     fn node_id_test() {
-        let node_id = NodeId(id!("abc"), Some(port!( id!("abc"), "n" )));
+        let node_id = NodeId(id!("abc"), Some(port!(id!("abc"), "n")));
         let mut ctx = PrinterContext::default();
         assert_eq!(node_id.print(&mut ctx), "abc:abc:n".to_string());
     }
@@ -331,20 +384,23 @@ mod tests {
     #[test]
     fn node_test() {
         let mut ctx = PrinterContext::default();
-        assert_eq!(node!("abc";attr!("a",2)).print(&mut ctx), "abc[a=2]".to_string());
+        assert_eq!(
+            node!("abc";attr!("a",2)).print(&mut ctx),
+            "abc[a=2]".to_string()
+        );
     }
 
     #[test]
     fn attr_test() {
         let mut ctx = PrinterContext::default();
-        let attr = attr!("a",2);
+        let attr = attr!("a", 2);
         assert_eq!(attr.print(&mut ctx), "a=2".to_string());
     }
 
     #[test]
     fn graph_attr_test() {
         let mut ctx = PrinterContext::default();
-        let n_attr = GraphAttributes::Node(vec![attr!("a",2), attr!("b",3)]);
+        let n_attr = GraphAttributes::Node(vec![attr!("a", 2), attr!("b", 3)]);
         assert_eq!(n_attr.print(&mut ctx), "node[a=2,b=3]".to_string());
     }
 
@@ -353,7 +409,10 @@ mod tests {
         let mut ctx = PrinterContext::default();
         let s = subgraph!("id"; node!("abc"), edge!(node_id!("a") => node_id!("b")));
         println!("{}", s.print(&mut ctx));
-        assert_eq!(s.print(&mut ctx), "subgraph id {\n    abc\n    a -- b \n}".to_string());
+        assert_eq!(
+            s.print(&mut ctx),
+            "subgraph id {\n    abc\n    a -- b \n}".to_string()
+        );
     }
 
     #[test]
@@ -361,16 +420,19 @@ mod tests {
         let mut ctx = PrinterContext::default();
         ctx.always_inline();
         let g = graph!(strict di id!("t");
-              node!("aa";attr!("color","green")),
-              subgraph!("v";
-                node!("aa"; attr!("shape","square")),
-                subgraph!("vv"; edge!(node_id!("a2") => node_id!("b2"))),
-                node!("aaa";attr!("color","red")),
-                edge!(node_id!("aaa") => node_id!("bbb"))
-                ),
-              edge!(node_id!("aa") => node_id!("be") => subgraph!("v"; edge!(node_id!("d") => node_id!("aaa")))),
-              edge!(node_id!("aa") => node_id!("aaa") => node_id!("v"))
-            );
-        assert_eq!(r#"strict digraph t {aa[color=green]subgraph v {aa[shape=square]subgraph vv {a2 -> b2 }aaa[color=red]aaa -> bbb }aa -> be -> subgraph v {d -> aaa }aa -> aaa -> v}"#, g.print(&mut ctx));
+          node!("aa";attr!("color","green")),
+          subgraph!("v";
+            node!("aa"; attr!("shape","square")),
+            subgraph!("vv"; edge!(node_id!("a2") => node_id!("b2"))),
+            node!("aaa";attr!("color","red")),
+            edge!(node_id!("aaa") => node_id!("bbb"))
+            ),
+          edge!(node_id!("aa") => node_id!("be") => subgraph!("v"; edge!(node_id!("d") => node_id!("aaa")))),
+          edge!(node_id!("aa") => node_id!("aaa") => node_id!("v"))
+        );
+        assert_eq!(
+            r#"strict digraph t {aa[color=green]subgraph v {aa[shape=square]subgraph vv {a2 -> b2 }aaa[color=red]aaa -> bbb }aa -> be -> subgraph v {d -> aaa }aa -> aaa -> v}"#,
+            g.print(&mut ctx)
+        );
     }
 }

@@ -43,9 +43,12 @@
 //!
 //!  }
 //! ```
+use std::{
+    io::{self, Write},
+    process::{Command, Output},
+};
+
 use tempfile::NamedTempFile;
-use std::io::{self, Write};
-use std::process::{Command, Output};
 
 pub(crate) fn exec(graph: String, args: Vec<CommandArg>) -> io::Result<String> {
     let args = args.into_iter().map(|a| a.prepare()).collect();
@@ -61,22 +64,18 @@ pub(crate) fn exec(graph: String, args: Vec<CommandArg>) -> io::Result<String> {
     })
 }
 
-
 fn do_exec(input: String, args: Vec<String>) -> io::Result<Output> {
     let mut command = Command::new("dot");
 
     for arg in args {
         command.arg(arg);
     }
-    command
-        .arg(input)
-        .output()
+    command.arg(input).output()
 }
 
 fn temp_file(ctx: String) -> io::Result<NamedTempFile> {
     let mut file = NamedTempFile::new()?;
-    file.write_all(ctx.as_bytes())
-        .map(|_x| file)
+    file.write_all(ctx.as_bytes()).map(|_x| file)
 }
 
 /// Command arguments that can be passed to exec.
@@ -115,7 +114,7 @@ impl CommandArg {
                     Format::DotJson => "dot_json".to_string(),
                     Format::XdotJson => "xdot_json".to_string(),
                     Format::PlainExt => "plain-ext".to_string(),
-                    _ => format!("{:?}", f).to_lowercase()
+                    _ => format!("{:?}", f).to_lowercase(),
                 };
                 format!("-T{}", str)
             }
@@ -123,7 +122,7 @@ impl CommandArg {
     }
 }
 
-#[derive(Debug,Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 pub enum Layout {
     Dot,
     Neato,
@@ -135,8 +134,7 @@ pub enum Layout {
     Sfdp,
 }
 
-
-#[derive(Debug,Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 pub enum Format {
     Bmp,
     Cgimage,

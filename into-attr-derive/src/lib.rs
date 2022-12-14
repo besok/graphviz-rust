@@ -1,12 +1,11 @@
-extern crate proc_macro;
 extern crate dot_structures;
+extern crate proc_macro;
 
 use dot_generator::attr;
-use syn::Data;
 use into_attr::IntoAttribute;
 use proc_macro::TokenStream;
 use quote::quote;
-use syn;
+use syn::{self, Data};
 
 #[proc_macro_derive(IntoAttribute)]
 pub fn into_attr_derive(input: TokenStream) -> TokenStream {
@@ -37,11 +36,9 @@ fn impl_into_attr_macro(ast: &syn::DeriveInput) -> TokenStream {
                 }
               }
             }
-
         }
         _ => panic!("the unions are unexpected"),
     };
 
     gen.into()
 }
-

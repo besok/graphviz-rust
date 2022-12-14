@@ -98,7 +98,6 @@
 //! [`graphviz`]: https://graphviz.org/
 //! [`notation`]: https://graphviz.org/doc/info/lang.html
 //! [`execute`]: https://graphviz.org/doc/info/command.html
-//!
 #![allow(non_camel_case_types)]
 #![allow(dead_code)]
 pub extern crate dot_generator;
@@ -107,14 +106,18 @@ pub extern crate into_attr;
 pub extern crate into_attr_derive;
 
 use std::io;
+
 use dot_structures::*;
-use crate::cmd::CommandArg;
-use crate::printer::{DotPrinter, PrinterContext};
+
+use crate::{
+    cmd::CommandArg,
+    printer::{DotPrinter, PrinterContext},
+};
 
 pub mod attributes;
-pub mod printer;
 pub mod cmd;
 mod parser;
+pub mod printer;
 
 #[macro_use]
 extern crate pest_derive;
@@ -143,19 +146,26 @@ pub fn exec_dot(dot_graph: String, args: Vec<CommandArg>) -> io::Result<String> 
 
 #[cfg(test)]
 mod tests {
-    use std::fs;
-    use std::path::{Path, PathBuf};
-    use std::process::Command;
-    use dot_structures::*;
+    use std::{
+        fs,
+        path::{Path, PathBuf},
+        process::Command,
+    };
+
     use dot_generator::*;
-    use crate::attributes::*;
-    use crate::{exec, exec_dot, parse};
-    use crate::cmd::{CommandArg, Format};
-    use crate::printer::{DotPrinter, PrinterContext};
+    use dot_structures::*;
+
+    use crate::{
+        attributes::*,
+        cmd::{CommandArg, Format},
+        exec, exec_dot, parse,
+        printer::{DotPrinter, PrinterContext},
+    };
 
     #[test]
     fn parse_test() {
-        let g: Graph = parse(r#"
+        let g: Graph = parse(
+            r#"
         strict digraph t {
             aa[color=green]
             subgraph v {
@@ -167,7 +177,9 @@ mod tests {
             aa -> be -> subgraph v { d -> aaa}
             aa -> aaa -> v
         }
-        "#).unwrap();
+        "#,
+        )
+        .unwrap();
 
         assert_eq!(
             g,
@@ -228,24 +240,24 @@ mod tests {
             .expect("dot command failed to start");
 
         let output = String::from_utf8_lossy(&child.stderr);
-        let version =
-            output
-                .strip_prefix("dot - ")
-                .and_then(|v| v.strip_suffix(LS))
-                .expect("the version of client is unrecognizable ");
+        let version = output
+            .strip_prefix("dot - ")
+            .and_then(|v| v.strip_suffix(LS))
+            .expect("the version of client is unrecognizable ");
         println!("{}", version);
 
-        let out_svg = exec(g.clone(), &mut ctx, vec![
-            CommandArg::Format(Format::Svg),
-        ]).unwrap();
-
+        let out_svg = exec(g.clone(), &mut ctx, vec![CommandArg::Format(Format::Svg)]).unwrap();
 
         let p = "1.svg";
-        let out = exec(g.clone(), &mut PrinterContext::default(), vec![
-            CommandArg::Format(Format::Svg),
-            CommandArg::Output(p.to_string()),
-        ]).unwrap();
-
+        let out = exec(
+            g.clone(),
+            &mut PrinterContext::default(),
+            vec![
+                CommandArg::Format(Format::Svg),
+                CommandArg::Output(p.to_string()),
+            ],
+        )
+        .unwrap();
 
         let file = fs::read_to_string(p).unwrap();
 
@@ -257,26 +269,21 @@ mod tests {
     #[test]
     fn output_exec_from_test() {
         let mut g = graph!(id!("id");
-                node!("nod"),
-                subgraph!("sb";
-                    edge!(node_id!("a") => subgraph!(;
-                       node!("n";
-                       NodeAttributes::color(color_name::black), NodeAttributes::shape(shape::egg))
-                   ))
-               ),
-               edge!(node_id!("a1") => node_id!(esc "a2"))
-           );
+             node!("nod"),
+             subgraph!("sb";
+                 edge!(node_id!("a") => subgraph!(;
+                    node!("n";
+                    NodeAttributes::color(color_name::black), NodeAttributes::shape(shape::egg))
+                ))
+            ),
+            edge!(node_id!("a1") => node_id!(esc "a2"))
+        );
         let dot = g.print(&mut PrinterContext::default());
         let format = Format::Svg;
 
-        let res1 = exec_dot(dot.clone(), vec![
-            CommandArg::Format(format),
-        ]).unwrap();
-        let res2 = exec_dot(dot.clone(), vec![
-            CommandArg::Format(format.clone()),
-        ]).unwrap();
+        let res1 = exec_dot(dot.clone(), vec![CommandArg::Format(format)]).unwrap();
+        let res2 = exec_dot(dot.clone(), vec![CommandArg::Format(format.clone())]).unwrap();
 
         assert_eq!(res1, res2)
     }
-
 }

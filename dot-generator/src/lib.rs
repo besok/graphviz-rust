@@ -50,10 +50,18 @@ use dot_structures::*;
 /// represents a port in dot lang
 #[macro_export]
 macro_rules! port {
-    () => {Port(None,None)};
-    ( , $str:expr) => { Port(None,Some($str.to_string()))};
-    ( $id:expr , $str:expr) => {Port(Some($id),Some($str.to_string()))};
-    ( $id:expr) => {Port(Some($id),None)};
+    () => {
+        Port(None, None)
+    };
+    (, $str:expr) => {
+        Port(None, Some($str.to_string()))
+    };
+    ($id:expr, $str:expr) => {
+        Port(Some($id), Some($str.to_string()))
+    };
+    ($id:expr) => {
+        Port(Some($id), None)
+    };
 }
 /// represents a node id in dot lang
 /// Essentially it is a combination of id and port
@@ -84,10 +92,18 @@ macro_rules! node_id {
 /// ```
 #[macro_export]
 macro_rules! id {
-    () => { Id::Anonymous("".to_string()) };
-    (html$e:expr) => { Id::Html(format!("{}",$e))};
-    (esc$e:expr) => { Id::Escaped(format!("\"{}\"",$e))};
-    ($e:expr) => { Id::Plain(format!("{}",$e))};
+    () => {
+        Id::Anonymous("".to_string())
+    };
+    (html $e:expr) => {
+        Id::Html(format!("{}", $e))
+    };
+    (esc $e:expr) => {
+        Id::Escaped(format!("\"{}\"", $e))
+    };
+    ($e:expr) => {
+        Id::Plain(format!("{}", $e))
+    };
 }
 
 /// represents an attribute in dot lang.
@@ -113,16 +129,21 @@ macro_rules! attr {
 /// for the underlying structure as node,edge, subgraph etc.
 /// #Example:
 /// ```rust
-///     fn stmt_test() {
-///         use dot_generator::*;
-///         use dot_structures::*;
+/// fn stmt_test() {
+///     use dot_generator::*;
+///     use dot_structures::*;
 ///
-///         assert_eq!(stmt!(node!()), Stmt::Node(Node::new(NodeId(id!(), None), vec![])));
-///     }
+///     assert_eq!(
+///         stmt!(node!()),
+///         Stmt::Node(Node::new(NodeId(id!(), None), vec![]))
+///     );
+/// }
 /// ```
 #[macro_export]
 macro_rules! stmt {
-    ($k:expr) => {Stmt::from($k)};
+    ($k:expr) => {
+        Stmt::from($k)
+    };
 }
 
 /// represents a subgraph in dot lang.
@@ -363,11 +384,19 @@ mod tests {
     fn graph_test() {
         assert_eq!(
             graph!(strict di id!("abc")),
-            Graph::DiGraph { id: id!("abc"), strict: true, stmts: vec![] }
+            Graph::DiGraph {
+                id: id!("abc"),
+                strict: true,
+                stmts: vec![]
+            }
         );
         assert_eq!(
             graph!(strict di id!("abc");stmt!(node!("abc"))),
-            Graph::DiGraph { id: id!("abc"), strict: true, stmts: vec![stmt!(node!("abc"))] }
+            Graph::DiGraph {
+                id: id!("abc"),
+                strict: true,
+                stmts: vec![stmt!(node!("abc"))]
+            }
         );
     }
 
@@ -375,54 +404,87 @@ mod tests {
     fn edge_test() {
         assert_eq!(
             edge!(node_id!("1") => node_id!("2")),
-            Edge { ty: EdgeTy::Pair(Vertex::N(node_id!("1")), Vertex::N(node_id!("2"))), attributes: vec![] }
+            Edge {
+                ty: EdgeTy::Pair(Vertex::N(node_id!("1")), Vertex::N(node_id!("2"))),
+                attributes: vec![]
+            }
         );
         assert_eq!(
             edge!(node_id!("1") => node_id!("2") => subgraph!("a")),
-            Edge { ty: EdgeTy::Chain(vec![Vertex::N(node_id!("1")), Vertex::N(node_id!("2")), Vertex::S(subgraph!("a"))]), attributes: vec![] }
+            Edge {
+                ty: EdgeTy::Chain(vec![
+                    Vertex::N(node_id!("1")),
+                    Vertex::N(node_id!("2")),
+                    Vertex::S(subgraph!("a"))
+                ]),
+                attributes: vec![]
+            }
         );
         assert_eq!(
             edge!(node_id!("1") => node_id!("2"), vec![attr!("a","b")]),
-            Edge { ty: EdgeTy::Pair(Vertex::N(node_id!("1")), Vertex::N(node_id!("2"))), attributes: vec![attr!("a","b")] }
+            Edge {
+                ty: EdgeTy::Pair(Vertex::N(node_id!("1")), Vertex::N(node_id!("2"))),
+                attributes: vec![attr!("a", "b")]
+            }
         );
         assert_eq!(
             edge!(node_id!("1") => node_id!("2"); attr!("a","b")),
-            Edge { ty: EdgeTy::Pair(Vertex::N(node_id!("1")), Vertex::N(node_id!("2"))), attributes: vec![attr!("a","b")] }
+            Edge {
+                ty: EdgeTy::Pair(Vertex::N(node_id!("1")), Vertex::N(node_id!("2"))),
+                attributes: vec![attr!("a", "b")]
+            }
         );
     }
 
     #[test]
     fn stmt_test() {
-        assert_eq!(stmt!(node!()), Stmt::Node(Node::new(NodeId(id!(), None), vec![])));
+        assert_eq!(
+            stmt!(node!()),
+            Stmt::Node(Node::new(NodeId(id!(), None), vec![]))
+        );
     }
 
     #[test]
     fn subgraph_test() {
-        assert_eq!(subgraph!(), Subgraph { id: Id::Anonymous("".to_string()), stmts: vec![] });
-        assert_eq!(subgraph!("abc";node!()),
-                   Subgraph {
-                       id: Id::Plain("abc".to_string()),
-                       stmts: vec![stmt!(node!())],
-                   });
+        assert_eq!(
+            subgraph!(),
+            Subgraph {
+                id: Id::Anonymous("".to_string()),
+                stmts: vec![]
+            }
+        );
+        assert_eq!(
+            subgraph!("abc";node!()),
+            Subgraph {
+                id: Id::Plain("abc".to_string()),
+                stmts: vec![stmt!(node!())],
+            }
+        );
     }
 
     #[test]
     fn node_test() {
         assert_eq!(node!(), Node::new(NodeId(id!(), None), vec![]));
-        assert_eq!(node!(html "abc"; attr!("a","a")),
-                   Node::new(NodeId(id!(html "abc"), None),
-                             vec![attr!("a","a")]));
-        assert_eq!(node!(html "abc" ; attr!("a","a")),
-                   Node::new(NodeId(id!(html "abc"), None),
-                             vec![attr!("a","a")]));
-        assert_eq!(node!("abc" ; attr!("a","a"),attr!("a","a")),
-                   Node::new(NodeId(id!( "abc"), None),
-                             vec![attr!("a","a"), attr!("a","a")]))
+        assert_eq!(
+            node!(html "abc"; attr!("a","a")),
+            Node::new(NodeId(id!(html "abc"), None), vec![attr!("a", "a")])
+        );
+        assert_eq!(
+            node!(html "abc" ; attr!("a","a")),
+            Node::new(NodeId(id!(html "abc"), None), vec![attr!("a", "a")])
+        );
+        assert_eq!(
+            node!("abc" ; attr!("a","a"),attr!("a","a")),
+            Node::new(
+                NodeId(id!("abc"), None),
+                vec![attr!("a", "a"), attr!("a", "a")]
+            )
+        )
     }
 
     #[test]
     fn attr_test() {
-        assert_eq!(attr!("a","1"), Attribute(id!("a"), id!("1")));
+        assert_eq!(attr!("a", "1"), Attribute(id!("a"), id!("1")));
         assert_eq!(attr!(html "a","1"), Attribute(id!(html "a"), id!("1")))
     }
 

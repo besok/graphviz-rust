@@ -9,8 +9,8 @@ edition = "2021"
 proc-macro = true
 
 [dependencies]
-syn = "1.0"
+dot-generator = { path = "../dot-generator", version = "0.2.0" }
+dot-structures = { path = "../dot-structures", version = "0.1.0" }
+into-attr = { path = "../into-attr", version = "0.1.0" }
 quote = "1.0"
-dot-structures = { path = "../dot-structures", version="0.1.0"}
-dot-generator = { path = "../dot-generator" , version="0.2.0"}
-into-attr = {path = "../into-attr", version="0.1.0"}
+syn = "1.0"

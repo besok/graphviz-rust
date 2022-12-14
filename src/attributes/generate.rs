@@ -1,5 +1,9 @@
 #[macro_export]
-macro_rules! as_item { ($i:item) => {$i} }
+macro_rules! as_item {
+    ($i:item) => {
+        $i
+    };
+}
 
 #[macro_export]
 macro_rules! generate_attr {
