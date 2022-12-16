@@ -69,7 +69,7 @@ impl GraphAttributes {
             "graph" => GraphAttributes::Graph(attrs),
             "node" => GraphAttributes::Node(attrs),
             "edge" => GraphAttributes::Edge(attrs),
-            _ => panic!("only graph, node, edge is applied here. ")
+            _ => panic!("only graph, node, edge is applied here. "),
         }
     }
 }
@@ -186,15 +186,23 @@ impl From<Subgraph> for Vertex {
 /// the component represents a graph in the lang.
 #[derive(Debug, PartialEq, Clone)]
 pub enum Graph {
-    Graph { id: Id, strict: bool, stmts: Vec<Stmt> },
-    DiGraph { id: Id, strict: bool, stmts: Vec<Stmt> },
+    Graph {
+        id: Id,
+        strict: bool,
+        stmts: Vec<Stmt>,
+    },
+    DiGraph {
+        id: Id,
+        strict: bool,
+        stmts: Vec<Stmt>,
+    },
 }
 
 impl Graph {
     pub fn add_stmt(&mut self, stmt: Stmt) {
         match self {
-            Graph::Graph { stmts, .. } => { stmts.push(stmt) }
-            Graph::DiGraph { stmts, .. } => { stmts.push(stmt) }
+            Graph::Graph { stmts, .. } => stmts.push(stmt),
+            Graph::DiGraph { stmts, .. } => stmts.push(stmt),
         }
     }
 }

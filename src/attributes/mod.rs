@@ -3,35 +3,37 @@
 //! [`attributes`]: https://graphviz.org/doc/info/attrs.html
 //! # Examples:
 //! ```rust
+//! use dot_generator::*;
+//! use dot_structures::*;
 //! use graphviz_rust::attributes::{color, color_name, GraphAttributes, NodeAttributes};
 //! use into_attr::IntoAttribute;
-//! use dot_structures::*;
-//! use dot_generator::*;
 //! fn test() {
-//!         assert_eq!(GraphAttributes::center(true), attr!("center",true));
-//!         assert_eq!(
-//!             NodeAttributes::color(color_name::antiquewhite1),
-//!             attr!("color","antiquewhite1"));
-//!         assert_eq!(color::default().into_attr(), attr!("color","black"));
-//!     }
+//!     assert_eq!(GraphAttributes::center(true), attr!("center", true));
+//!     assert_eq!(
+//!         NodeAttributes::color(color_name::antiquewhite1),
+//!         attr!("color", "antiquewhite1")
+//!     );
+//!     assert_eq!(color::default().into_attr(), attr!("color", "black"));
+//! }
 //! ```
 mod generate;
-use crate::{generate_attr, as_item};
-use into_attr::IntoAttribute;
-use into_attr_derive::IntoAttribute;
+use std::fmt::{Display, Formatter};
+
 use dot_generator::{attr, id};
 use dot_structures::*;
-use std::fmt::Display;
-use std::fmt::Formatter;
+use into_attr::IntoAttribute;
+use into_attr_derive::IntoAttribute;
+
+use crate::{as_item, generate_attr};
 
 /// The attributes appearing on the node
-pub enum  NodeAttributes {}
+pub enum NodeAttributes {}
 /// The attributes appearing on the edge
-pub enum  EdgeAttributes {}
+pub enum EdgeAttributes {}
 /// The attributes appearing on the root graph
-pub enum  GraphAttributes {}
+pub enum GraphAttributes {}
 /// The attributes appearing on the subgraph
-pub enum  SubgraphAttributes {}
+pub enum SubgraphAttributes {}
 
 generate_attr!(struct _background for GraphAttributes; String; "<none>".to_string() );
 generate_attr!(struct area for NodeAttributes, SubgraphAttributes; f32; 1.0);
@@ -302,22 +304,22 @@ generate_attr!(enum color_name;
     //endregion
 );
 
-
-
-
-
 #[cfg(test)]
 pub mod tests {
     use std::fmt::{Display, Formatter};
-    use dot_generator::{attr};
-    use crate::attributes::*;
+
+    use dot_generator::attr;
     use into_attr::IntoAttribute;
 
+    use crate::attributes::*;
 
     #[test]
     fn test() {
-        assert_eq!(GraphAttributes::center(true), attr!("center",true));
-        assert_eq!(GraphAttributes::bgcolor(color_name::antiquewhite1), attr!("bgcolor","antiquewhite1"));
-        assert_eq!(color::default().into_attr(), attr!("color","black"));
+        assert_eq!(GraphAttributes::center(true), attr!("center", true));
+        assert_eq!(
+            GraphAttributes::bgcolor(color_name::antiquewhite1),
+            attr!("bgcolor", "antiquewhite1")
+        );
+        assert_eq!(color::default().into_attr(), attr!("color", "black"));
     }
 }

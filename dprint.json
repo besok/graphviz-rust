@@ -1,0 +1,29 @@
+{
+  "json": {},
+  "markdown": {},
+  "toml": {},
+  "rustfmt": {
+    "tab_spaces": "4",
+    "imports_granularity": "Crate",
+    "reorder_imports": true,
+    "group_imports": "StdExternalCrate",
+    "use_field_init_shorthand": true,
+    "normalize_doc_attributes": true,
+    "format_code_in_doc_comments": true,
+    "format_macro_matchers": true,
+    "use_try_shorthand": true
+  },
+  "includes": [
+    "**/*.{json,md,toml,rs}"
+  ],
+  "excludes": [
+    "*lock*",
+    "**/target/"
+  ],
+  "plugins": [
+    "https://plugins.dprint.dev/json-0.16.0.wasm",
+    "https://plugins.dprint.dev/markdown-0.14.3.wasm",
+    "https://plugins.dprint.dev/toml-0.5.4.wasm",
+    "https://plugins.dprint.dev/rustfmt-0.6.2.json@886c6f3161cf020c2d75160262b0f56d74a521e05cfb91ec4f956650c8ca76ca"
+  ]
+}

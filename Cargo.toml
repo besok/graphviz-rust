@@ -1,24 +1,23 @@
 [package]
 name = "graphviz-rust"
-description = "The library provides the basic access to the graphs in graphviz format with ability to import into or export from it."
 version = "0.4.0"
-edition = "2021"
 authors = ["BorisZhguchev <zhguchev@gmail.com>"]
-license-file = "LICENSE"
+categories = ["parsing", "visualization", "api-bindings"]
+edition = "2021"
 homepage = "https://github.com/besok/graphviz-rust"
-repository = "https://github.com/besok/graphviz-rust"
-readme = "README.md"
 keywords = ["graph", "graphviz", "dotfile", "dot", "visualize"]
-categories = ["parsing","visualization","api-bindings"]
-
+license-file = "LICENSE"
+readme = "README.md"
+repository = "https://github.com/besok/graphviz-rust"
+description = "The library provides the basic access to the graphs in graphviz format with ability to import into or export from it."
 
 [dependencies]
+dot-generator = { path = "dot-generator", version = "0.2.0" }
+dot-structures = { path = "dot-structures", version = "0.1.0" }
+into-attr = { path = "into-attr", version = "0.1.0" }
+into-attr-derive = { path = "into-attr-derive", version = "0.1.0" }
 pest = "2.0"
 pest_derive = "2.0"
 rand = "0.8.4"
-into-attr = { path = "into-attr", version="0.1.0" }
-into-attr-derive = {path = "into-attr-derive", version="0.1.0"}
-dot-structures = { path = "dot-structures", version="0.1.0" }
-dot-generator = { path = "dot-generator", version="0.2.0" }
 tempfile = "3.2.0"
 [dev-dependencies]
