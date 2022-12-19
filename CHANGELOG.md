@@ -7,3 +7,5 @@
   - Fix bugs with html tags in labels
 - **`0.4.0`**
   - Add method exec_dot
+- **`0.5.0`**
+  - reformat documentation
