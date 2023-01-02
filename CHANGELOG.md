@@ -8,4 +8,6 @@
 - **`0.4.0`**
   - Add method exec_dot
 - **`0.5.0`**
-  - reformat documentation
+  - Reformat documentation
+- **`0.5.1`**
+  - Fix a bug with a return type in exec  

@@ -33,18 +33,18 @@
 //!
 //!  }
 //!  fn graph_to_file(){
-//!     let mut g = graph!(id!("id"));
+//!         let mut g = graph!(id!("id"));
 //!         let mut ctx = PrinterContext::default();
 //!         ctx.always_inline();
-//!         let empty = exec(g, &mut ctx, vec![
+//!         let empty = exec(g.print(&mut ctx), vec![
 //!            CommandArg::Format(Format::Svg),
 //!            CommandArg::Output("1.svg".to_string())
-//!        ]).unwrap();
+//!        ]);
 //!
 //!  }
 //! ```
 use std::{
-    io::{self, Write},
+    io::{self, ErrorKind, Write},
     process::{Command, Output},
 };
 
@@ -54,11 +54,12 @@ pub(crate) fn exec(graph: String, args: Vec<CommandArg>) -> io::Result<String> {
     let args = args.into_iter().map(|a| a.prepare()).collect();
     temp_file(graph).and_then(|f| {
         let path = f.path().to_string_lossy().to_string();
-        do_exec(path, args).map(|o| {
+        do_exec(path, args).and_then(|o| {
             if o.status.code().map(|c| c != 0).unwrap_or(true) {
-                String::from_utf8_lossy(&*o.stderr).to_string()
+                let mes = String::from_utf8_lossy(&*o.stderr).to_string();
+                Err(std::io::Error::new(ErrorKind::Other, mes))
             } else {
-                String::from_utf8_lossy(&*o.stdout).to_string()
+                Ok(String::from_utf8_lossy(&*o.stdout).to_string())
             }
         })
     })
@@ -191,4 +192,29 @@ pub enum Format {
     Webp,
     Xlib,
     X11,
+}
+
+#[cfg(test)]
+mod tests {
+    use dot_generator::*;
+    use dot_structures::*;
+
+    use crate::printer::{DotPrinter, PrinterContext};
+
+    use super::{exec, CommandArg, CommandArg::*, Format};
+
+    #[test]
+    fn error_test() {
+        let mut g = graph!(id!("id"));
+        let mut ctx = PrinterContext::default();
+        ctx.always_inline();
+        let empty = exec(
+            g.print(&mut ctx),
+            vec![
+                CommandArg::Format(Format::Svg),
+                CommandArg::Output("missing/1.svg".to_string()),
+            ],
+        );
+        assert!(empty.is_err())
+    }
 }
