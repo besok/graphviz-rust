@@ -11,3 +11,5 @@
   - Reformat documentation
 - **`0.5.1`**
   - Fix a bug with a return type in exec  
+- **`0.5.2`**
+  - Fix a bug with the comment after graph without a new line
