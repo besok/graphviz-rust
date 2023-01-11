@@ -1,5 +1,5 @@
 WHITESPACE = _{ " " | "\t" | "\r\n" | "\n" }
-COMMENT    = _{("/*" ~ (!"*/" ~ ANY)* ~ "*/") | (("#" | "//") ~ (!NEWLINE ~ ANY)* ~ NEWLINE) }
+COMMENT    = _{("/*" ~ (!"*/" ~ ANY)* ~ "*/") | (("#" | "//") ~ (!NEWLINE ~ ANY)* ~ NEWLINE?) }
 word = _{ ('a'..'z' | 'A'..'Z')+ }
 arr = _{"->" | "--"}
 char = _{

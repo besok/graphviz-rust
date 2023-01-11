@@ -546,4 +546,10 @@ mod test {
 
         assert_eq!(g, graph!(strict di id!("t")))
     }
+    #[test]
+    fn comments_after_graph_test() {
+        let g: Graph = parse("// b \n strict digraph t { \n /* \n abc */ \n} \n // a ").unwrap();
+
+        assert_eq!(g, graph!(strict di id!("t")))
+    }
 }
