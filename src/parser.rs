@@ -512,10 +512,10 @@ mod test {
         strict digraph t {
             aa[color=green]
             subgraph v {
-	            aa[shape=square]
-	            subgraph vv{a2 -> b2}
-	            aaa[color=red]
-	            aaa -> bbb
+                aa[shape=square]
+                subgraph vv{a2 -> b2}
+                aaa[color=red]
+                aaa -> bbb
             }
             aa -> be -> subgraph v { d -> aaa}
             aa -> aaa -> v
@@ -536,6 +536,29 @@ mod test {
                 ),
               edge!(node_id!("aa") => node_id!("be") => subgraph!("v"; edge!(node_id!("d") => node_id!("aaa")))),
               edge!(node_id!("aa") => node_id!("aaa") => node_id!("v"))
+            )
+        )
+    }
+
+    #[test]
+    fn global_attr_test() {
+        let g: Graph = parse(
+            r#"
+        graph t {
+            graph [bb="0,0,54,108"];
+            node [label="\N"];
+            a -- b;
+        }
+        "#,
+        )
+        .unwrap();
+
+        assert_eq!(
+            g,
+            graph!(id!("t");
+                stmt!(GraphAttributes::Graph(vec![attr!("bb", esc "0,0,54,108")])),
+                stmt!(GraphAttributes::Node(vec![attr!("label", esc "\\N")])),
+                edge!(node_id!("a") => node_id!("b"))
             )
         )
     }
