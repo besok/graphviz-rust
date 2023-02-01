@@ -545,7 +545,7 @@ mod test {
         let g: Graph = parse(
             r#"
         graph t {
-            graph [bb="0,0,54,108"];
+            graph [_draw_="c 9 "];
             node [label="\N"];
             a -- b;
         }
@@ -556,7 +556,7 @@ mod test {
         assert_eq!(
             g,
             graph!(id!("t");
-                stmt!(GraphAttributes::Graph(vec![attr!("bb", esc "0,0,54,108")])),
+                stmt!(GraphAttributes::Graph(vec![attr!("_draw_", esc "c 9 ")])),
                 stmt!(GraphAttributes::Node(vec![attr!("label", esc "\\N")])),
                 edge!(node_id!("a") => node_id!("b"))
             )
