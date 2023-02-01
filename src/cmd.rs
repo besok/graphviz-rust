@@ -36,7 +36,7 @@
 //!         let mut g = graph!(id!("id"));
 //!         let mut ctx = PrinterContext::default();
 //!         ctx.always_inline();
-//!         let empty = exec(g.print(&mut ctx), vec![
+//!         let empty = exec(g, &mut ctx, vec![
 //!            CommandArg::Format(Format::Svg),
 //!            CommandArg::Output("1.svg".to_string())
 //!        ]);
