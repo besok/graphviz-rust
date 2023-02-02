@@ -1,10 +1,12 @@
 WHITESPACE = _{ " " | "\t" | "\r\n" | "\n" }
 COMMENT    = _{("/*" ~ (!"*/" ~ ANY)* ~ "*/") | (("#" | "//") ~ (!NEWLINE ~ ANY)* ~ NEWLINE?) }
-word = _{ ('a'..'z' | 'A'..'Z')+ }
+word = _{ ('a'..'z' | 'A'..'Z' | "_")+ }
 arr = _{"->" | "--"}
 char = _{
     !("\"" | "\\" | "\'") ~ ANY
     | "\\" ~ ("\"" | "\'" |  "\\" | "/" | "b" | "f" | "n" | "r" | "t")
+    // TODO: the following option is only valid for some attributes: https://graphviz.org/docs/attr-types/escString/
+    | "\\" ~ ("G" | "N" | "E" | "H" | "T" | "L")
     | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
 }
 
@@ -12,7 +14,7 @@ inner = ${ char* }
 number = ${"-"? ~ (("0" | ASCII_NONZERO_DIGIT ~ ASCII_DIGIT*) ~ ("." ~ ASCII_DIGIT+)? | ("." ~ ASCII_DIGIT+))}
 string_qt = ${ "\"" ~ inner ~ "\"" }
 html = ${"<" ~ (!(">" ~ WHITESPACE* ~">") ~ ANY)+ ~ ">" ~ WHITESPACE* ~ ">"}
-plain = ${(word ~ (word | ASCII_DIGIT | "_")*) | number}
+plain = ${(word ~ (word | ASCII_DIGIT)*) | number}
 
 
 compass = ${"n" | "ne" | "e" | "se" | "s" | "sw" | "w" | "nw" | "c" | "_"}
