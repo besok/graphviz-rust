@@ -100,6 +100,18 @@ pub enum CommandArg {
     Format(Format),
 }
 
+impl From<Layout> for CommandArg {
+    fn from(value: Layout) -> Self {
+        CommandArg::Layout(value)
+    }
+}
+
+impl From<Format> for CommandArg {
+    fn from(value: Format) -> Self {
+        CommandArg::Format(value)
+    }
+}
+
 impl CommandArg {
     fn prepare(&self) -> String {
         match self {
@@ -211,7 +223,7 @@ mod tests {
         let empty = exec(
             g.print(&mut ctx),
             vec![
-                CommandArg::Format(Format::Svg),
+                Format::Svg.into(),
                 CommandArg::Output("missing/1.svg".to_string()),
             ],
         );

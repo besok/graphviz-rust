@@ -75,7 +75,7 @@
 //!     let graph_svg = exec(
 //!         g,
 //!         &mut PrinterContext::default(),
-//!         vec![CommandArg::Format(Format::Svg)],
+//!         vec![Format::Svg.into()],
 //!     )
 //!     .unwrap();
 //! }
@@ -94,9 +94,9 @@
 //!     println!("{}", dot);
 //!     let format = Format::Svg;
 //!
-//!     let graph_svg = exec_dot(dot.clone(), vec![CommandArg::Format(format)]).unwrap();
+//!     let graph_svg = exec_dot(dot.clone(), vec![format.into()]).unwrap();
 //!
-//!     let graph_svg = exec_dot(dot, vec![CommandArg::Format(format.clone())]).unwrap();
+//!     let graph_svg = exec_dot(dot, vec![format.clone().into()]).unwrap();
 //! }
 //! ```
 //!
@@ -286,8 +286,8 @@ mod tests {
         let dot = g.print(&mut PrinterContext::default());
         let format = Format::Svg;
 
-        let res1 = exec_dot(dot.clone(), vec![CommandArg::Format(format)]).unwrap();
-        let res2 = exec_dot(dot.clone(), vec![CommandArg::Format(format.clone())]).unwrap();
+        let res1 = exec_dot(dot.clone(), vec![format.into()]).unwrap();
+        let res2 = exec_dot(dot.clone(), vec![format.clone().into()]).unwrap();
 
         assert_eq!(res1, res2)
     }

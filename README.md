@@ -3,7 +3,7 @@
 The library provides the basic access to the graphs in [graphviz](https://graphviz.org/) format with ability to import
 into or export from it.
 
-### Base examples:
+### Base examples
 
 #### Parse dot source
 
@@ -88,13 +88,13 @@ fn output_test() {
     let graph_svg = exec(
         g,
         &mut PrinterContext::default(),
-        vec![CommandArg::Format(Format::Svg)],
+        vec![Format::Svg.into()],
     )
     .unwrap();
 }
 ```
 
-### Structure:
+### Structure
 
 The structure pursues to follow the dot [notation](https://graphviz.org/doc/info/lang.html) closely, therefore it has
 straight accordance. The structures can be found in `dot_structures::*` and has the following denotion:
@@ -103,16 +103,16 @@ straight accordance. The structures can be found in `dot_structures::*` and has 
 strict digraph t {                     : graph with t as id
         aa[color=green]                : node aa and attributes in []
         subgraph v {                   : subgraph v
-	        aa[shape=square]            : node aa in subgraph
-	        subgraph vv{a2 -> b2}       : another subgraph carrying edge inside( a type of the edge is Pair)
-	        aaa[color=red]
-	        aaa -> subgraph { d -> aaa} : subgraph id is anonymous id
+         aa[shape=square]            : node aa in subgraph
+         subgraph vv{a2 -> b2}       : another subgraph carrying edge inside( a type of the edge is Pair)
+         aaa[color=red]
+         aaa -> subgraph { d -> aaa} : subgraph id is anonymous id
         }
        aa -> be -> d -> aaa            : other edge with a type Chain
    }
 ```
 
-### Generate a dot structure:
+### Generate a dot structure
 
 The library provides a set of macros alleviating the process of graph construction.
 
@@ -244,7 +244,7 @@ fn output_test() {
         g,
         PrinterContext::default(),
         vec![
-            CommandArg::Format(Format::Svg),
+            Format::Svg.into(),
             CommandArg::Output("path_to_file".to_string()),
         ],
     );
