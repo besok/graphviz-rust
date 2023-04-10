@@ -2,6 +2,8 @@
 name = "into-attr-derive"
 version = "0.2.0"
 edition = "2021"
+license-file = "../LICENSE"
+description = "derive for attributes for graphviz-rust lib"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
