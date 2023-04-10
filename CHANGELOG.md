@@ -15,4 +15,7 @@
   - Fix a bug with the comment after graph without a new line
 - **`0.6.1`**
   - Fix a bug with names
-  - add into params for command lines attrs  
+  - add into params for command lines attrs
+- **`0.6.2`**
+  - up the versions for the underlings
+
