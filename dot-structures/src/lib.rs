@@ -21,13 +21,13 @@ use std::fmt::{Display, Formatter};
 
 /// the component represents a port in the language.
 /// It contains from id and direction. All can be optional separately but not at the same time.
-#[derive(Debug, PartialEq, Clone, Eq)]
+#[derive(Debug, PartialEq, Clone, Eq, Hash)]
 pub struct Port(pub Option<Id>, pub Option<String>);
 
 /// the component represents a id in the language.
 /// The Anonymous is a virtual component to keep the other components consistent in case
 /// when a node or subgraph is anonymous
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Id {
     Html(String),
     Escaped(String),
@@ -48,7 +48,7 @@ impl Display for Id {
 
 /// the component represents a node_id in the language.
 /// The component turns up in the edges predominantly or as an id for a node.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Hash)]
 pub struct NodeId(pub Id, pub Option<Port>);
 
 /// the component represents a attribute in the language.
