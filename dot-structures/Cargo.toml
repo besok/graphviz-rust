@@ -3,8 +3,8 @@ name = "dot-structures"
 version = "0.1.1"
 edition = "2021"
 license-file = "../LICENSE"
+license = "MIT"
 description = "The structrures to support graphviz-rust library"
-
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]

@@ -3,6 +3,7 @@ name = "into-attr"
 version = "0.1.1"
 edition = "2021"
 license-file = "../LICENSE"
+license = "MIT"
 description = "the macros helping to transform attributes in graphviz-rust library"
 
 [dependencies]
