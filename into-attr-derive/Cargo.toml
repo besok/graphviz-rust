@@ -1,6 +1,6 @@
 [package]
 name = "into-attr-derive"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 license-file = "../LICENSE"
 description = "derive for attributes for graphviz-rust lib"
@@ -11,8 +11,8 @@ description = "derive for attributes for graphviz-rust lib"
 proc-macro = true
 
 [dependencies]
-dot-generator = { path = "../dot-generator", version = "0.2.0" }
-dot-structures = { path = "../dot-structures", version = "0.1.0" }
-into-attr = { path = "../into-attr", version = "0.1.0" }
+dot-generator = "0.2.0"
+dot-structures = "0.1.1"
+into-attr = "0.1.1"
 quote = "1.0"
 syn = "1.0"
