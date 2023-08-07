@@ -2,12 +2,9 @@ WHITESPACE = _{ " " | "\t" | "\r\n" | "\n" }
 COMMENT    = _{("/*" ~ (!"*/" ~ ANY)* ~ "*/") | (("#" | "//") ~ (!NEWLINE ~ ANY)* ~ NEWLINE?) }
 word = _{ ('a'..'z' | 'A'..'Z' | "_")+ }
 arr = _{"->" | "--"}
-char = _{
-    !("\"" | "\\" | "\'") ~ ANY
-    | "\\" ~ ("\"" | "\'" |  "\\" | "/" | "b" | "f" | "n" | "r" | "t")
-    // TODO: the following option is only valid for some attributes: https://graphviz.org/docs/attr-types/escString/
-    | "\\" ~ ("G" | "N" | "E" | "H" | "T" | "L")
-    | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
+char = {
+    !("\"" | "\\") ~ ANY
+    | "\\" ~ (ANY)
 }
 
 inner = ${ char* }
