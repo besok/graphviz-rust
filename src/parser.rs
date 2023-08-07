@@ -246,6 +246,14 @@ mod test {
         let result = process_id(_parse("abc_a", Rule::id));
         assert_eq!(result, id!("abc_a"));
 
+        // valid ID
+        let result = process_id(_parse(r#""a\b\c.'\"""#, Rule::id));
+        assert_eq!(result, id!(esc r#"a\b\c.'\""#));
+
+        // invalid ID unescaped quote
+        let result = process_id(_parse(r#""a\b"\c.'\"""#, Rule::id));
+        assert_eq!(result, id!(esc r#"a\b"#));
+
         let result = process_id(_parse("\"ab\\\"c\"", Rule::id));
         assert_eq!(result, id!(esc "ab\\\"c"));
 
@@ -510,7 +518,7 @@ mod test {
         let g: Graph = parse(
             r#"
         strict digraph t {
-            aa[color=green]
+            aa[color=green,label="shouln't er\ror"]
             subgraph v {
                 aa[shape=square]
                 subgraph vv{a2 -> b2}
@@ -527,7 +535,7 @@ mod test {
         assert_eq!(
             g,
             graph!(strict di id!("t");
-              node!("aa";attr!("color","green")),
+              node!("aa";attr!("color","green"),attr!("label", esc "shouln't er\\ror")),
               subgraph!("v";
                 node!("aa"; attr!("shape","square")),
                 subgraph!("vv"; edge!(node_id!("a2") => node_id!("b2"))),
