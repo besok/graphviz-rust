@@ -18,4 +18,6 @@
   - add into params for command lines attrs
 - **`0.6.2`**
   - up the versions for the underlings
+- **`0.6.6`**
+  - fix some bugs
 
