@@ -1,12 +1,12 @@
-//! The library allows to interact with [`graphviz`] format.
+//! The library provides functionality for interacting with the [`graphviz` DOT language].
 //!
 //! # Description:
-//! Essentially, it starts from 3 base methods:
-//!  - parse: a source of a dot file in the dot [`notation`]. The output format is a [Graph].
-//!  - print: [Graph] and [DotPrinter] provides an ability to transform a graph into string
-//!         following the [`notation`]
-//!  - exec: an ability to [`execute`] a cmd graphviz engine into different formats and etc.
-//!  - exec_dot: an ability to [`execute`] a cmd graphviz engine into different formats from a prepared string containing a dot graph.
+//! This library contains 4 primary functions:
+//!  - parse: parses a string in the dot [`notation`] into a [Graph].
+//!  - print: serializes a [Graph] into a string given a [DotPrinter].
+//!  - exec: executes the [`dot` command line executable] given a [Graph].
+//!  - exec_dot: executes the [`dot` command line executable] given a string in
+//!    the dot [`notation`].
 //!
 //! # Examples:
 //! ```rust
@@ -101,8 +101,9 @@
 //! ```
 //!
 //! [`graphviz`]: https://graphviz.org/
+//! [`graphviz` DOT language]: https://graphviz.org/doc/info/lang.html
 //! [`notation`]: https://graphviz.org/doc/info/lang.html
-//! [`execute`]: https://graphviz.org/doc/info/command.html
+//! [`dot` command line executable]: https://graphviz.org/doc/info/command.html
 #![allow(non_camel_case_types)]
 #![allow(dead_code)]
 pub extern crate dot_generator;
@@ -128,8 +129,7 @@ pub mod printer;
 extern crate pest_derive;
 extern crate pest;
 
-/// Parses a given string into a graph format that can be used afterwards or returning
-/// an string with an error description
+/// Parses a string into a [Graph].
 pub fn parse(dot: &str) -> Result<Graph, String> {
     parser::parse(dot)
 }
@@ -139,12 +139,14 @@ pub fn print(graph: Graph, ctx: &mut PrinterContext) -> String {
     graph.print(ctx)
 }
 
-/// Executes a given graph using a dot cmd client
+/// Executes the [`dot` command line executable](https://graphviz.org/doc/info/command.html)
+/// using the given [Graph], [PrinterContext] and command line arguments
 pub fn exec(graph: Graph, ctx: &mut PrinterContext, args: Vec<CommandArg>) -> io::Result<String> {
     cmd::exec(print(graph, ctx), args)
 }
 
-/// Executes a given string representation of the graph using a dot cmd client
+/// Executes the [`dot` command line executable](https://graphviz.org/doc/info/command.html)
+/// using the given string dot notation, [PrinterContext] and command line arguments
 pub fn exec_dot(dot_graph: String, args: Vec<CommandArg>) -> io::Result<String> {
     cmd::exec(dot_graph, args)
 }

@@ -1,12 +1,13 @@
-//! It allows to execute cmd engine passing extra parameters
+//! Utilities for executing the [`dot` command line executable].
 //!
-//! *It is important*: to execute it properly it needs to have an [`executable package`] on the system
+//! *Important*: users should have the `dot` command line executable installed.
+//! A download can be found here: https://graphviz.org/download/.
 //!
-//! The extra information can be found in [`layouts`] and [`outputs`]
+//! Additional information on controlling the output can be found in [`layouts`]
+//! and [`outputs`].
 //!
 //! [`layouts`]: https://graphviz.org/docs/layouts/
 //! [`outputs`]:https://graphviz.org/docs/outputs/
-//! [`executable package`]: https://graphviz.org/download/
 //! # Example:
 //! ```no_run
 //!     use dot_structures::*;
@@ -43,6 +44,8 @@
 //!
 //!  }
 //! ```
+//!
+//! [`dot` command line executable]: https://graphviz.org/doc/info/command.html
 use std::{
     io::{self, ErrorKind, Write},
     process::{Command, Output},
@@ -86,7 +89,8 @@ fn temp_file(ctx: String) -> io::Result<NamedTempFile> {
 pub enum CommandArg {
     /// any custom argument.
     ///
-    /// _Note_: it does not manage any prefixes and thus '-' or the prefix must be passed as well.
+    /// _Note_: it does not manage any prefixes and thus '-' or the prefix must
+    /// be passed as well.
     Custom(String),
     /// Regulates the output file with -o prefix
     Output(String),
@@ -135,6 +139,10 @@ impl CommandArg {
     }
 }
 
+/// Various algorithms for projecting abstract graphs into a space for
+/// visualization
+///
+/// https://graphviz.org/docs/layouts/
 #[derive(Debug, Copy, Clone)]
 pub enum Layout {
     Dot,
@@ -147,6 +155,10 @@ pub enum Layout {
     Sfdp,
 }
 
+/// Various graphic and data formats for end user, web, documents and other
+/// applications.
+///
+/// https://graphviz.org/docs/outputs/
 #[derive(Debug, Copy, Clone)]
 pub enum Format {
     Bmp,
