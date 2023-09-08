@@ -1,48 +1,47 @@
 //! Utilities for executing the [`dot` command line executable].
 //!
 //! *Important*: users should have the `dot` command line executable installed.
-//! A download can be found here: https://graphviz.org/download/.
+//! A download can be found here: <https://graphviz.org/download/>.
 //!
-//! Additional information on controlling the output can be found in [`layouts`]
-//! and [`outputs`].
+//! Additional information on controlling the output can be found in the `graphviz`
+//! docs on [layouts] and [output formats].
 //!
-//! [`layouts`]: https://graphviz.org/docs/layouts/
-//! [`outputs`]:https://graphviz.org/docs/outputs/
+//! [layouts]: https://graphviz.org/docs/layouts/
+//! [output formats]:https://graphviz.org/docs/outputs/
 //! # Example:
 //! ```no_run
-//!     use dot_structures::*;
-//!     use dot_generator::*;
-//!     use graphviz_rust::attributes::*;
-//!     use graphviz_rust::cmd::{CommandArg, Format};
-//!     use graphviz_rust::exec;
-//!     use graphviz_rust::printer::{PrinterContext,DotPrinter};
+//! use dot_structures::*;
+//! use dot_generator::*;
+//! use graphviz_rust::attributes::*;
+//! use graphviz_rust::cmd::{CommandArg, Format};
+//! use graphviz_rust::exec;
+//! use graphviz_rust::printer::{PrinterContext,DotPrinter};
 //!
-//!  fn graph_to_output(){
+//! fn graph_to_output(){
 //!     let mut g = graph!(id!("id");
 //!             node!("nod"),
 //!             subgraph!("sb";
-//!                 edge!(node_id!("a") => subgraph!(;
-//!                    node!("n";
-//!                    NodeAttributes::color(color_name::black), NodeAttributes::shape(shape::egg))
-//!                ))
-//!            ),
-//!            edge!(node_id!("a1") => node_id!(esc "a2"))
-//!        );
-//!        let graph_svg = exec(g, &mut PrinterContext::default(), vec![
-//!            CommandArg::Format(Format::Svg),
-//!        ]).unwrap();
+//!                edge!(node_id!("a") => subgraph!(;
+//!                   node!("n";
+//!                   NodeAttributes::color(color_name::black), NodeAttributes::shape(shape::egg))
+//!               ))
+//!           ),
+//!           edge!(node_id!("a1") => node_id!(esc "a2"))
+//!     );
+//!     let graph_svg = exec(g, &mut PrinterContext::default(), vec![
+//!         CommandArg::Format(Format::Svg),
+//!     ]).unwrap();
+//! }
 //!
-//!  }
-//!  fn graph_to_file(){
-//!         let mut g = graph!(id!("id"));
-//!         let mut ctx = PrinterContext::default();
-//!         ctx.always_inline();
-//!         let empty = exec(g, &mut ctx, vec![
-//!            CommandArg::Format(Format::Svg),
-//!            CommandArg::Output("1.svg".to_string())
-//!        ]);
-//!
-//!  }
+//! fn graph_to_file(){
+//!        let mut g = graph!(id!("id"));
+//!        let mut ctx = PrinterContext::default();
+//!        ctx.always_inline();
+//!        let empty = exec(g, &mut ctx, vec![
+//!           CommandArg::Format(Format::Svg),
+//!           CommandArg::Output("1.svg".to_string())
+//!       ]);
+//! }
 //! ```
 //!
 //! [`dot` command line executable]: https://graphviz.org/doc/info/command.html
@@ -82,10 +81,10 @@ fn temp_file(ctx: String) -> io::Result<NamedTempFile> {
     file.write_all(ctx.as_bytes()).map(|_x| file)
 }
 
-/// Command arguments that can be passed to exec.
-/// The list of possible [`commands`]
+/// Commandline arguments that can be passed to executable.
 ///
-/// [`commands`]:https://graphviz.org/doc/info/command.html
+/// The list of possible commands can be found here:
+/// <https://graphviz.org/doc/info/command.html>.
 pub enum CommandArg {
     /// any custom argument.
     ///
@@ -142,7 +141,7 @@ impl CommandArg {
 /// Various algorithms for projecting abstract graphs into a space for
 /// visualization
 ///
-/// https://graphviz.org/docs/layouts/
+/// <https://graphviz.org/docs/layouts/>
 #[derive(Debug, Copy, Clone)]
 pub enum Layout {
     Dot,
@@ -158,7 +157,7 @@ pub enum Layout {
 /// Various graphic and data formats for end user, web, documents and other
 /// applications.
 ///
-/// https://graphviz.org/docs/outputs/
+/// <https://graphviz.org/docs/outputs/>
 #[derive(Debug, Copy, Clone)]
 pub enum Format {
     Bmp,

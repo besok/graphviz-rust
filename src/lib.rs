@@ -2,10 +2,10 @@
 //!
 //! # Description:
 //! This library contains 4 primary functions:
-//!  - parse: parses a string in the dot [`notation`] into a [Graph].
-//!  - print: serializes a [Graph] into a string given a [DotPrinter].
-//!  - exec: executes the [`dot` command line executable] given a [Graph].
-//!  - exec_dot: executes the [`dot` command line executable] given a string in
+//!  - [parse]: parses a string in the dot [`notation`] into a [Graph].
+//!  - [print](crate::print): serializes a [Graph] into a string given a [DotPrinter].
+//!  - [exec]: executes the [`dot` command line executable] given a [Graph].
+//!  - [exec_dot]: executes the [`dot` command line executable] given a string in
 //!    the dot [`notation`].
 //!
 //! # Examples:
@@ -134,19 +134,19 @@ pub fn parse(dot: &str) -> Result<Graph, String> {
     parser::parse(dot)
 }
 
-/// Prints a given graph according to a given [`PrinterContext`]
+/// Serializes a [Graph] into a string given a [DotPrinter].
 pub fn print(graph: Graph, ctx: &mut PrinterContext) -> String {
     graph.print(ctx)
 }
 
 /// Executes the [`dot` command line executable](https://graphviz.org/doc/info/command.html)
-/// using the given [Graph], [PrinterContext] and command line arguments
+/// using the given [Graph], [PrinterContext] and command line arguments.
 pub fn exec(graph: Graph, ctx: &mut PrinterContext, args: Vec<CommandArg>) -> io::Result<String> {
     cmd::exec(print(graph, ctx), args)
 }
 
 /// Executes the [`dot` command line executable](https://graphviz.org/doc/info/command.html)
-/// using the given string dot notation, [PrinterContext] and command line arguments
+/// using the given string dot notation, [PrinterContext] and command line arguments.
 pub fn exec_dot(dot_graph: String, args: Vec<CommandArg>) -> io::Result<String> {
     cmd::exec(dot_graph, args)
 }
