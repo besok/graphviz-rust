@@ -153,11 +153,7 @@ pub fn exec_dot(dot_graph: String, args: Vec<CommandArg>) -> io::Result<String> 
 
 #[cfg(test)]
 mod tests {
-    use std::{
-        fs,
-        path::{Path, PathBuf},
-        process::Command,
-    };
+    use std::{fs, process::Command};
 
     use dot_generator::*;
     use dot_structures::*;
@@ -226,7 +222,7 @@ mod tests {
 
     #[test]
     fn exec_test() {
-        let mut g = graph!(id!("id");
+        let g = graph!(id!("id");
             node!("nod"),
             subgraph!("sb";
                 edge!(node_id!("a") => subgraph!(;
@@ -275,7 +271,7 @@ mod tests {
 
     #[test]
     fn output_exec_from_test() {
-        let mut g = graph!(id!("id");
+        let g = graph!(id!("id");
              node!("nod"),
              subgraph!("sb";
                  edge!(node_id!("a") => subgraph!(;

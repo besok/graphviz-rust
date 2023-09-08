@@ -219,19 +219,12 @@ fn process_graph(rule: Pair<Rule>) -> Graph {
 mod test {
     use dot_generator::{attr, edge, graph, id, node, node_id, port, stmt, subgraph};
     use dot_structures::*;
-    use pest::{
-        error::Error,
-        iterators::{Pair, Pairs},
-        RuleType,
-    };
+    use pest::iterators::Pair;
 
-    use crate::{
-        parser::{
-            do_parse, down, parse, process_attr, process_attr_list, process_attr_stmt,
-            process_edge, process_edge_stmt, process_id, process_node, process_node_id,
-            process_stmt, process_vertex, DotParser, Rule, Stmt, Vertex,
-        },
-        pest::Parser,
+    use crate::parser::{
+        do_parse, parse, process_attr, process_attr_list, process_attr_stmt, process_edge,
+        process_edge_stmt, process_id, process_node, process_node_id, process_stmt, process_vertex,
+        Rule, Stmt, Vertex,
     };
 
     fn _parse(input: &str, ty: Rule) -> Pair<Rule> {
