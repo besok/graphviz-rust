@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 //! graphviz [`attributes`]
 //!
 //! [`attributes`]: https://graphviz.org/doc/info/attrs.html
@@ -306,8 +307,6 @@ generate_attr!(enum color_name;
 
 #[cfg(test)]
 pub mod tests {
-    use std::fmt::{Display, Formatter};
-
     use dot_generator::attr;
     use into_attr::IntoAttribute;
 

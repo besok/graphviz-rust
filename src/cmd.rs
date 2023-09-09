@@ -1,48 +1,50 @@
-//! It allows to execute cmd engine passing extra parameters
+//! Utilities for executing the [`dot` command line executable].
 //!
-//! *It is important*: to execute it properly it needs to have an [`executable package`] on the system
+//! *Important*: users should have the `dot` command line executable installed.
+//! A download can be found here: <https://graphviz.org/download/>.
 //!
-//! The extra information can be found in [`layouts`] and [`outputs`]
+//! Additional information on controlling the output can be found in the `graphviz`
+//! docs on [layouts] and [output formats].
 //!
-//! [`layouts`]: https://graphviz.org/docs/layouts/
-//! [`outputs`]:https://graphviz.org/docs/outputs/
-//! [`executable package`]: https://graphviz.org/download/
+//! [layouts]: https://graphviz.org/docs/layouts/
+//! [output formats]:https://graphviz.org/docs/outputs/
 //! # Example:
 //! ```no_run
-//!     use dot_structures::*;
-//!     use dot_generator::*;
-//!     use graphviz_rust::attributes::*;
-//!     use graphviz_rust::cmd::{CommandArg, Format};
-//!     use graphviz_rust::exec;
-//!     use graphviz_rust::printer::{PrinterContext,DotPrinter};
+//! use dot_structures::*;
+//! use dot_generator::*;
+//! use graphviz_rust::attributes::*;
+//! use graphviz_rust::cmd::{CommandArg, Format};
+//! use graphviz_rust::exec;
+//! use graphviz_rust::printer::{PrinterContext,DotPrinter};
 //!
-//!  fn graph_to_output(){
+//! fn graph_to_output(){
 //!     let mut g = graph!(id!("id");
 //!             node!("nod"),
 //!             subgraph!("sb";
-//!                 edge!(node_id!("a") => subgraph!(;
-//!                    node!("n";
-//!                    NodeAttributes::color(color_name::black), NodeAttributes::shape(shape::egg))
-//!                ))
-//!            ),
-//!            edge!(node_id!("a1") => node_id!(esc "a2"))
-//!        );
-//!        let graph_svg = exec(g, &mut PrinterContext::default(), vec![
-//!            CommandArg::Format(Format::Svg),
-//!        ]).unwrap();
+//!                edge!(node_id!("a") => subgraph!(;
+//!                   node!("n";
+//!                   NodeAttributes::color(color_name::black), NodeAttributes::shape(shape::egg))
+//!               ))
+//!           ),
+//!           edge!(node_id!("a1") => node_id!(esc "a2"))
+//!     );
+//!     let graph_svg = exec(g, &mut PrinterContext::default(), vec![
+//!         CommandArg::Format(Format::Svg),
+//!     ]).unwrap();
+//! }
 //!
-//!  }
-//!  fn graph_to_file(){
-//!         let mut g = graph!(id!("id"));
-//!         let mut ctx = PrinterContext::default();
-//!         ctx.always_inline();
-//!         let empty = exec(g, &mut ctx, vec![
-//!            CommandArg::Format(Format::Svg),
-//!            CommandArg::Output("1.svg".to_string())
-//!        ]);
-//!
-//!  }
+//! fn graph_to_file(){
+//!        let mut g = graph!(id!("id"));
+//!        let mut ctx = PrinterContext::default();
+//!        ctx.always_inline();
+//!        let empty = exec(g, &mut ctx, vec![
+//!           CommandArg::Format(Format::Svg),
+//!           CommandArg::Output("1.svg".to_string())
+//!       ]);
+//! }
 //! ```
+//!
+//! [`dot` command line executable]: https://graphviz.org/doc/info/command.html
 use std::{
     io::{self, ErrorKind, Write},
     process::{Command, Output},
@@ -56,10 +58,10 @@ pub(crate) fn exec(graph: String, args: Vec<CommandArg>) -> io::Result<String> {
         let path = f.path().to_string_lossy().to_string();
         do_exec(path, args).and_then(|o| {
             if o.status.code().map(|c| c != 0).unwrap_or(true) {
-                let mes = String::from_utf8_lossy(&*o.stderr).to_string();
+                let mes = String::from_utf8_lossy(&o.stderr).to_string();
                 Err(std::io::Error::new(ErrorKind::Other, mes))
             } else {
-                Ok(String::from_utf8_lossy(&*o.stdout).to_string())
+                Ok(String::from_utf8_lossy(&o.stdout).to_string())
             }
         })
     })
@@ -79,14 +81,15 @@ fn temp_file(ctx: String) -> io::Result<NamedTempFile> {
     file.write_all(ctx.as_bytes()).map(|_x| file)
 }
 
-/// Command arguments that can be passed to exec.
-/// The list of possible [`commands`]
+/// Commandline arguments that can be passed to executable.
 ///
-/// [`commands`]:https://graphviz.org/doc/info/command.html
+/// The list of possible commands can be found here:
+/// <https://graphviz.org/doc/info/command.html>.
 pub enum CommandArg {
     /// any custom argument.
     ///
-    /// _Note_: it does not manage any prefixes and thus '-' or the prefix must be passed as well.
+    /// _Note_: it does not manage any prefixes and thus '-' or the prefix must
+    /// be passed as well.
     Custom(String),
     /// Regulates the output file with -o prefix
     Output(String),
@@ -135,6 +138,10 @@ impl CommandArg {
     }
 }
 
+/// Various algorithms for projecting abstract graphs into a space for
+/// visualization
+///
+/// <https://graphviz.org/docs/layouts/>
 #[derive(Debug, Copy, Clone)]
 pub enum Layout {
     Dot,
@@ -147,6 +154,10 @@ pub enum Layout {
     Sfdp,
 }
 
+/// Various graphic and data formats for end user, web, documents and other
+/// applications.
+///
+/// <https://graphviz.org/docs/outputs/>
 #[derive(Debug, Copy, Clone)]
 pub enum Format {
     Bmp,
@@ -213,11 +224,11 @@ mod tests {
 
     use crate::printer::{DotPrinter, PrinterContext};
 
-    use super::{exec, CommandArg, CommandArg::*, Format};
+    use super::{exec, CommandArg, Format};
 
     #[test]
     fn error_test() {
-        let mut g = graph!(id!("id"));
+        let g = graph!(id!("id"));
         let mut ctx = PrinterContext::default();
         ctx.always_inline();
         let empty = exec(

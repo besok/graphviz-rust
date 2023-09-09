@@ -1,5 +1,4 @@
-//! It allows to transform a graph into a string carrying dot info according
-//! to the notation.
+//! Serialize a [Graph] into a string according to the [`graphviz` DOT language].
 //!
 //! # Example:
 //! ```rust
@@ -12,11 +11,14 @@
 //!         assert_eq!(s.print(&mut ctx), "subgraph id {\n    abc\n    a -- b \n}".to_string());
 //!     }
 //! ```
+//!
+//! [`graphviz` DOT language]: https://graphviz.org/doc/info/lang.html
 use dot_structures::{
     Attribute, Edge, EdgeTy, Graph, GraphAttributes, Id, Node, NodeId, Port, Stmt, Subgraph, Vertex,
 };
 
 /// Context allows to customize the output of the file.
+///
 /// # Example:
 /// ```rust
 /// fn ctx() {
@@ -45,29 +47,31 @@ pub struct PrinterContext {
 }
 
 impl PrinterContext {
-    /// everything in one line
+    /// Print everything on one line.
     pub fn always_inline(&mut self) -> &mut PrinterContext {
         self.l_s_m = self.l_s_i.clone();
         self.l_s = self.l_s_i.clone();
         self
     }
-    /// add semi at the end of every line
+    /// Add a semicolon at the end of every line.
     pub fn with_semi(&mut self) -> &mut PrinterContext {
         self.semi = true;
         self
     }
-    /// set a step of the indent
+    /// Set a step of the indent.
     pub fn with_indent_step(&mut self, step: usize) -> &mut PrinterContext {
         self.indent_step = step;
         self
     }
-    /// set a specific line sep
+    /// Set a specific line separator.
     pub fn with_line_sep(&mut self, sep: String) -> &mut PrinterContext {
         self.l_s = sep.clone();
         self.l_s_m = sep;
         self
     }
-    /// set a line len enough to fit in a line
+    /// Set the max line length.
+    ///
+    /// The default value is 90.
     pub fn with_inline_size(&mut self, inline_s: usize) -> &mut PrinterContext {
         self.inline_size = inline_s;
         self
@@ -132,7 +136,8 @@ impl Default for PrinterContext {
     }
 }
 
-/// The trait allowing to transform a graph into the dot file:
+/// The trait for serailizing a [Graph] into the `graphviz` DOT language:
+///
 /// # Example:
 ///  ```rust
 ///     fn test(){
