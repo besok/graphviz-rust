@@ -141,13 +141,13 @@ pub fn print(graph: Graph, ctx: &mut PrinterContext) -> String {
 
 /// Executes the [`dot` command line executable](https://graphviz.org/doc/info/command.html)
 /// using the given [Graph], [PrinterContext] and command line arguments.
-pub fn exec(graph: Graph, ctx: &mut PrinterContext, args: Vec<CommandArg>) -> io::Result<String> {
+pub fn exec(graph: Graph, ctx: &mut PrinterContext, args: Vec<CommandArg>) -> io::Result<Vec<u8>> {
     cmd::exec(print(graph, ctx), args)
 }
 
 /// Executes the [`dot` command line executable](https://graphviz.org/doc/info/command.html)
 /// using the given string dot notation, [PrinterContext] and command line arguments.
-pub fn exec_dot(dot_graph: String, args: Vec<CommandArg>) -> io::Result<String> {
+pub fn exec_dot(dot_graph: String, args: Vec<CommandArg>) -> io::Result<Vec<u8>> {
     cmd::exec(dot_graph, args)
 }
 
@@ -265,8 +265,8 @@ mod tests {
         let file = fs::read_to_string(p).unwrap();
 
         fs::remove_file(p).unwrap();
-        assert_eq!("", out);
-        assert_eq!(out_svg, file);
+        assert_eq!(Vec::<u8>::new(), out);
+        assert_eq!(out_svg, file.as_bytes());
     }
 
     #[test]

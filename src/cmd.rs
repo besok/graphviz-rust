@@ -52,7 +52,7 @@ use std::{
 
 use tempfile::NamedTempFile;
 
-pub(crate) fn exec(graph: String, args: Vec<CommandArg>) -> io::Result<String> {
+pub(crate) fn exec(graph: String, args: Vec<CommandArg>) -> io::Result<Vec<u8>> {
     let args = args.into_iter().map(|a| a.prepare()).collect();
     temp_file(graph).and_then(|f| {
         let path = f.path().to_string_lossy().to_string();
@@ -61,7 +61,7 @@ pub(crate) fn exec(graph: String, args: Vec<CommandArg>) -> io::Result<String> {
                 let mes = String::from_utf8_lossy(&o.stderr).to_string();
                 Err(std::io::Error::new(ErrorKind::Other, mes))
             } else {
-                Ok(String::from_utf8_lossy(&o.stdout).to_string())
+                Ok(o.stdout)
             }
         })
     })
