@@ -60,9 +60,12 @@ fn process_id(rule: Pair<Rule>) -> Id {
     }
 }
 
-fn parse_compass_manually(id: &str) -> Option<String> {
+fn parse_compass_manually(id: Id) -> Option<String> {
     match id {
-        "n" | "ne" | "e" | "se" | "s" | "sw" | "w" | "nw" | "c" | "_" => Some(id.to_string()),
+        Id::Plain(ref s) => match s.as_str() {
+            "n" | "ne" | "e" | "se" | "s" | "sw" | "w" | "nw" | "c" | "_" => Some(id.to_string()),
+            _ => None
+        }
         _ => None
     }
 }
@@ -70,27 +73,20 @@ fn parse_compass_manually(id: &str) -> Option<String> {
 fn process_port(port: Pair<Rule>) -> Port {
     let mut port_r = port.into_inner();
     if let Some(r) = port_r.next() {
-        let mut id = None;
-        let mut com = None;
-
         match r.as_rule() {
-            Rule::compass => com = Some(r.as_str().to_string()),
+            Rule::compass => Port(None, Some(r.as_str().to_string())),
             Rule::id => {
-                if let Some(c) = parse_compass_manually(r.as_str()) {
-                    com = Some(c);
+                let mb_id_mb_compass = process_id(r);
+                if let Some(r) = port_r.next() {
+                    Port(Some(mb_id_mb_compass), Some(r.as_str().to_string()))
                 } else {
-                    let temp_id = process_id(r);
-                    if let Some(r) = port_r.next() {
-                        com = Some(r.as_str().to_string());
-                        id = Some(temp_id);
-                    }else {
-                        temp_id
-                    }
+                    parse_compass_manually(mb_id_mb_compass.clone())
+                        .map(|s| Port(None, Some(s)))
+                        .unwrap_or_else(|| Port(Some(mb_id_mb_compass), None))
                 }
             }
             _ => panic!("unreachable!"),
         }
-        Port(id, com)
     } else {
         panic!("port can not be empty")
     }
@@ -597,14 +593,14 @@ mod test {
     fn port_test() {
         let g = parse(r#"
         digraph test { A:s0 -> B;}"#).unwrap();
-        assert_eq!(g, graph!(di id!("test"); edge!(node_id!("A", port!(,"g0")) => node_id!("B"))))
+        assert_eq!(g, graph!(di id!("test"); edge!(node_id!("A", port!(id!("s0"))) => node_id!("B"))))
     }
 
     #[test]
     fn port_w_test() {
         let g = parse(r#"
         digraph test { A:s0:s -> B;}"#).unwrap();
-        assert_eq!(g, graph!(di id!("test"); edge!(node_id!("A", port!(,"g0")) => node_id!("B"))))
+        assert_eq!(g, graph!(di id!("test"); edge!(node_id!("A", port!(id!("s0"),"s")) => node_id!("B"))))
     }
 
     #[test]

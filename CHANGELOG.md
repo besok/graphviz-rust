@@ -20,4 +20,7 @@
   - up the versions for the underlings
 - **`0.6.6`**
   - fix some bugs
+- **`0.7.0`**
+  - fix some bugs with port parsing
+
 

@@ -1,12 +1,11 @@
 [package]
 name = "graphviz-rust"
-version = "0.6.6"
+version = "0.7.0"
 authors = ["BorisZhguchev <zhguchev@gmail.com>"]
 categories = ["parsing", "visualization", "api-bindings"]
 edition = "2021"
 homepage = "https://github.com/besok/graphviz-rust"
 keywords = ["graph", "graphviz", "dotfile", "dot", "visualize"]
-license = "MIT"
 license-file = "LICENSE"
 readme = "README.md"
 repository = "https://github.com/besok/graphviz-rust"
