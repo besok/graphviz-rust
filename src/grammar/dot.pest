@@ -16,7 +16,7 @@ plain = ${(word ~ (word | ASCII_DIGIT)*) | number}
 
 compass = ${"n" | "ne" | "e" | "se" | "s" | "sw" | "w" | "nw" | "c" | "_"}
 
-port = {(":" ~ compass) | (":" ~ id ~ (":" ~ compass)?) }
+port = {":" ~ id ~ (":" ~ compass)? }
 id = {plain | html | string_qt}
 node_id = {id ~ port?}
 attr = {bare_attr ~ (";" |",")?}
