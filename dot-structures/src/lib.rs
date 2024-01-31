@@ -48,7 +48,7 @@ impl Display for Id {
 
 /// the component represents a node_id in the language.
 /// The component turns up in the edges predominantly or as an id for a node.
-#[derive(Debug, PartialEq, Clone, Hash)]
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
 pub struct NodeId(pub Id, pub Option<Port>);
 
 /// the component represents a attribute in the language.
