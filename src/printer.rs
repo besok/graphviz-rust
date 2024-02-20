@@ -327,13 +327,17 @@ fn print_edge(edge: &Edge, ctx: &mut PrinterContext) -> String {
             ty: EdgeTy::Pair(l, r),
             attributes,
         } => {
-            format!(
-                "{} {} {} {}",
-                l.print(ctx),
-                bond,
-                r.print(ctx),
-                attributes.print(ctx)
-            )
+            if attributes.is_empty() {
+                format!("{} {} {}", l.print(ctx), bond, r.print(ctx))
+            } else {
+                format!(
+                    "{} {} {} {}",
+                    l.print(ctx),
+                    bond,
+                    r.print(ctx),
+                    attributes.print(ctx)
+                )
+            }
         }
         Edge {
             ty: EdgeTy::Chain(vs),
