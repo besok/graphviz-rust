@@ -22,5 +22,7 @@
   - fix some bugs
 - **`0.7.0`**
   - fix some bugs with port parsing
+- **`0.7.2`**
+  - fix formatting
 
 
