@@ -13,9 +13,37 @@
 //! ```
 //!
 //! [`graphviz` DOT language]: https://graphviz.org/doc/info/lang.html
+use std::collections::HashMap;
+
 use dot_structures::{
     Attribute, Edge, EdgeTy, Graph, GraphAttributes, Id, Node, NodeId, Port, Stmt, Subgraph, Vertex,
 };
+
+/// A function which can be passed to the [PrinterContext] to provide custom printing for attribute values.
+///
+/// # Example:
+/// ```rust
+/// use dot_generator::*;
+/// use dot_structures::*;
+/// use graphviz_rust::printer::{AttributeValuePrinter, DotPrinter, PrinterContext};
+/// fn attr_formatter_test() {
+///     let mut ctx = PrinterContext::default();
+///     let formatter: Box<AttributeValuePrinter> =
+///         Box::new(|value, _line_sep, _indent, _indent_step| format!(r#""**{}**""#, value.trim_matches('"')));
+///     let g = graph!(di id!("attr_formatting");
+///          node!("abc";attr!("custom",esc "Custom Text")),
+///          edge!(node_id!("a") => node_id!("b"))
+///     );
+///     assert_eq!(
+///         "digraph attr_formatting {\n  abc[custom=\"**Custom Text**\"]\n  a -> b\n}",
+///         g.print(
+///             ctx.with_node_mult_attr_s_l()
+///                 .with_attribute_formatter(id!("custom"), formatter)
+///         )
+///     );
+/// }
+/// ```
+pub type AttributeValuePrinter = dyn Fn(&str, &str, &str, usize) -> String;
 
 /// Context allows to customize the output of the file.
 ///
@@ -46,6 +74,8 @@ pub struct PrinterContext {
     inline_size: usize,
     l_s_i: String,
     l_s_m: String,
+    /// a map of attribute id to AttributeValuePrinters
+    attr_value_printers: HashMap<Id, Box<AttributeValuePrinter>>,
 }
 
 impl PrinterContext {
@@ -83,6 +113,15 @@ impl PrinterContext {
         self.inline_size = inline_s;
         self
     }
+    /// Add an attribute printer for a specific attribute id.
+    pub fn with_attr_value_printer(
+        &mut self,
+        attr_id: Id,
+        fmt: Box<AttributeValuePrinter>,
+    ) -> &mut PrinterContext {
+        self.attr_value_printers.insert(attr_id, fmt);
+        self
+    }
 
     pub fn new(semi: bool, indent_step: usize, line_s: String, inline_size: usize) -> Self {
         PrinterContext {
@@ -95,6 +134,7 @@ impl PrinterContext {
             l_s: line_s.clone(),
             l_s_i: line_s,
             l_s_m: "".to_string(),
+            attr_value_printers: HashMap::new(),
         }
     }
 }
@@ -141,6 +181,7 @@ impl Default for PrinterContext {
             inline_size: 90,
             l_s_i: "".to_string(),
             l_s_m: "\n".to_string(),
+            attr_value_printers: HashMap::new(),
         }
     }
 }
@@ -199,7 +240,19 @@ impl DotPrinter for NodeId {
 impl DotPrinter for Attribute {
     fn print(&self, ctx: &mut PrinterContext) -> String {
         match self {
-            Attribute(l, r) => format!("{}={}", l.print(ctx), r.print(ctx)),
+            Attribute(l, r) => {
+                let l_val = l.print(ctx);
+                let r_val = r.print(ctx);
+                if let Some(formatter) = ctx.attr_value_printers.get(l) {
+                    format!(
+                        "{}={}",
+                        l_val,
+                        formatter(&r_val, &ctx.l_s, &ctx.indent(), ctx.indent_step)
+                    )
+                } else {
+                    format!("{}={}", l_val, r_val)
+                }
+            }
         }
     }
 }
@@ -213,9 +266,9 @@ impl DotPrinter for Vec<Attribute> {
             let indent = ctx.indent();
             ctx.indent_grow();
             let r = format!(
-                "[{}{}{}{}{}]", 
+                "[{}{}{}{}{}]",
                 ctx.l_s,
-                ctx.indent(), 
+                ctx.indent(),
                 attrs.join(&format!(",{}{}", ctx.l_s, ctx.indent())),
                 ctx.l_s,
                 indent,
@@ -521,6 +574,27 @@ mod tests {
         assert_eq!(
             "digraph multi {\n  a[shape=square]\n  aa[\n    color=blue,\n    shape=Mrecord\n  ]\n  subgraph v {\n    aaa[shape=square]\n    aaaa[\n      color=red,\n      shape=Mrecord\n    ]\n    aaa -> aaaa [label=FALSE]\n  }\n  a -> aa [label=TRUE,color=green]\n}",
             g.print(ctx.with_node_mult_attr_s_l())
+        );
+    }
+
+    #[test]
+    fn attr_formatter_graph_test() {
+        let mut ctx = PrinterContext::default();
+        let g = graph!(di id!("multi");
+          node!("a";attr!("shape","square")),
+          node!("aa";attr!("color","blue"),attr!("custom", esc "Custom Text"),attr!("shape","Mrecord")),
+          subgraph!("v";
+            node!("aaa"; attr!("shape","square")),
+            node!("aaaa";attr!("color","red"),attr!("custom", esc "Custom Text2")),
+            edge!(node_id!("aaa") => node_id!("aaaa");attr!("label","FALSE"))
+          ),
+          edge!(node_id!("a") => node_id!("aa");attr!("label","TRUE"), attr!("color","green"))
+        );
+        assert_eq!(
+            "digraph multi {\n  a[shape=square]\n  aa[\n    color=blue,\n    custom=\"**Custom Text**\",\n    shape=Mrecord\n  ]\n  subgraph v {\n    aaa[shape=square]\n    aaaa[\n      color=red,\n      custom=\"**Custom Text2**\"\n    ]\n    aaa -> aaaa [label=FALSE]\n  }\n  a -> aa [label=TRUE,color=green]\n}",
+            g.print(ctx.with_node_mult_attr_s_l().with_attr_value_printer(id!("custom"), Box::new(|value, _l_s, _indent, _i_s| {
+                format!(r#""**{}**""#, value.trim_matches('"'))
+            })))
         );
     }
 }
