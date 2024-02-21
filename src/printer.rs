@@ -327,13 +327,17 @@ fn print_edge(edge: &Edge, ctx: &mut PrinterContext) -> String {
             ty: EdgeTy::Pair(l, r),
             attributes,
         } => {
-            format!(
-                "{} {} {} {}",
-                l.print(ctx),
-                bond,
-                r.print(ctx),
-                attributes.print(ctx)
-            )
+            if attributes.is_empty() {
+                format!("{} {} {}", l.print(ctx), bond, r.print(ctx))
+            } else {
+                format!(
+                    "{} {} {} {}",
+                    l.print(ctx),
+                    bond,
+                    r.print(ctx),
+                    attributes.print(ctx)
+                )
+            }
         }
         Edge {
             ty: EdgeTy::Chain(vs),
@@ -416,7 +420,7 @@ mod tests {
         println!("{}", s.print(&mut ctx));
         assert_eq!(
             s.print(&mut ctx),
-            "subgraph id {\n    abc\n    a -- b \n}".to_string()
+            "subgraph id {\n    abc\n    a -- b\n}".to_string()
         );
     }
 
@@ -436,7 +440,7 @@ mod tests {
           edge!(node_id!("aa") => node_id!("aaa") => node_id!("v"))
         );
         assert_eq!(
-            r#"strict digraph t {aa[color=green]subgraph v {aa[shape=square]subgraph vv {a2 -> b2 }aaa[color=red]aaa -> bbb }aa -> be -> subgraph v {d -> aaa }aa -> aaa -> v}"#,
+            r#"strict digraph t {aa[color=green]subgraph v {aa[shape=square]subgraph vv {a2 -> b2}aaa[color=red]aaa -> bbb}aa -> be -> subgraph v {d -> aaa}aa -> aaa -> v}"#,
             g.print(&mut ctx)
         );
     }

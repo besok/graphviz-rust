@@ -232,7 +232,7 @@ mod tests {
             ),
             edge!(node_id!("a1") => node_id!(esc "a2"))
         );
-        let graph_str = "graph id {\n    nod\n    subgraph sb {\n        a -- subgraph  {n[color=black,shape=egg]} \n    }\n    a1 -- \"a2\" \n}";
+        let graph_str = "graph id {\n    nod\n    subgraph sb {\n        a -- subgraph  {n[color=black,shape=egg]}\n    }\n    a1 -- \"a2\"\n}";
 
         let mut ctx = PrinterContext::default();
         assert_eq!(graph_str, g.print(&mut ctx));
