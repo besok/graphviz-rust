@@ -299,9 +299,7 @@ impl DotPrinter for Graph {
 
 impl DotPrinter for Vec<Stmt> {
     fn print(&self, ctx: &mut PrinterContext) -> String {
-        ctx.indent_grow();
         let attrs: Vec<String> = self.iter().map(|e| e.print(ctx)).collect();
-        ctx.indent_shrink();
         attrs.join(ctx.l_s.as_str())
     }
 }
@@ -420,7 +418,7 @@ mod tests {
         println!("{}", s.print(&mut ctx));
         assert_eq!(
             s.print(&mut ctx),
-            "subgraph id {\n    abc\n    a -- b\n}".to_string()
+            "subgraph id {\n  abc\n  a -- b\n}".to_string()
         );
     }
 
@@ -442,6 +440,46 @@ mod tests {
         assert_eq!(
             r#"strict digraph t {aa[color=green]subgraph v {aa[shape=square]subgraph vv {a2 -> b2}aaa[color=red]aaa -> bbb}aa -> be -> subgraph v {d -> aaa}aa -> aaa -> v}"#,
             g.print(&mut ctx)
+        );
+    }
+
+    #[test]
+    fn semi_graph_test() {
+        let mut ctx = PrinterContext::default();
+        let g = graph!(strict di id!("t");
+          node!("aa";attr!("color","green")),
+          subgraph!("v";
+            node!("aa"; attr!("shape","square")),
+            subgraph!("vv"; edge!(node_id!("a2") => node_id!("b2"))),
+            node!("aaa";attr!("color","red")),
+            edge!(node_id!("aaa") => node_id!("bbb"))
+            ),
+          edge!(node_id!("aa") => node_id!("be") => subgraph!("v"; edge!(node_id!("d") => node_id!("aaa")))),
+          edge!(node_id!("aa") => node_id!("aaa") => node_id!("v"))
+        );
+        assert_eq!(
+            "strict digraph t {\n  aa[color=green];\n  subgraph v {\n    aa[shape=square];\n    subgraph vv {\n      a2 -> b2;\n    };\n    aaa[color=red];\n    aaa -> bbb;\n  };\n  aa -> be -> subgraph v {d -> aaa;};\n  aa -> aaa -> v;\n}",
+            g.print(ctx.with_semi())
+        );
+    }
+
+    #[test]
+    fn indent_step_graph_test() {
+        let mut ctx = PrinterContext::default();
+        let g = graph!(strict di id!("t");
+          node!("aa";attr!("color","green")),
+          subgraph!("v";
+            node!("aa"; attr!("shape","square")),
+            subgraph!("vv"; edge!(node_id!("a2") => node_id!("b2"))),
+            node!("aaa";attr!("color","red")),
+            edge!(node_id!("aaa") => node_id!("bbb"))
+            ),
+          edge!(node_id!("aa") => node_id!("be") => subgraph!("v"; edge!(node_id!("d") => node_id!("aaa")))),
+          edge!(node_id!("aa") => node_id!("aaa") => node_id!("v"))
+        );
+        assert_eq!(
+            "strict digraph t {\n    aa[color=green]\n    subgraph v {\n        aa[shape=square]\n        subgraph vv {\n            a2 -> b2\n        }\n        aaa[color=red]\n        aaa -> bbb\n    }\n    aa -> be -> subgraph v {d -> aaa}\n    aa -> aaa -> v\n}",
+            g.print(ctx.with_indent_step(4))
         );
     }
 }
