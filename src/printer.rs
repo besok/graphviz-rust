@@ -34,6 +34,8 @@ pub struct PrinterContext {
     is_digraph: bool,
     /// a flag adds a semicolon at the end of the line
     semi: bool,
+    /// a flag, print multiple node attributes on seperate lines
+    mult_node_attr_on_s_l: bool,
     /// an initial indent. 0 by default
     indent: usize,
     /// a step of the indent. 2 by default
@@ -56,6 +58,11 @@ impl PrinterContext {
     /// Add a semicolon at the end of every line.
     pub fn with_semi(&mut self) -> &mut PrinterContext {
         self.semi = true;
+        self
+    }
+    /// Print multiple attributes on seperate lines
+    pub fn with_node_mult_attr_s_l(&mut self) -> &mut PrinterContext {
+        self.mult_node_attr_on_s_l = true;
         self
     }
     /// Set a step of the indent.
@@ -81,6 +88,7 @@ impl PrinterContext {
         PrinterContext {
             is_digraph: false,
             semi,
+            mult_node_attr_on_s_l: false,
             indent: 0,
             indent_step,
             inline_size,
@@ -125,6 +133,7 @@ impl Default for PrinterContext {
     fn default() -> Self {
         PrinterContext {
             is_digraph: false,
+            mult_node_attr_on_s_l: false,
             semi: false,
             indent: 0,
             indent_step: 2,
@@ -200,6 +209,19 @@ impl DotPrinter for Vec<Attribute> {
         let attrs: Vec<String> = self.iter().map(|e| e.print(ctx)).collect();
         if attrs.is_empty() {
             "".to_string()
+        } else if attrs.len() > 1 && ctx.mult_node_attr_on_s_l {
+            let indent = ctx.indent();
+            ctx.indent_grow();
+            let r = format!(
+                "[{}{}{}{}{}]", 
+                ctx.l_s,
+                ctx.indent(), 
+                attrs.join(&format!(",{}{}", ctx.l_s, ctx.indent())),
+                ctx.l_s,
+                indent,
+            );
+            ctx.indent_shrink();
+            r
         } else {
             format!("[{}]", attrs.join(","))
         }
@@ -480,6 +502,25 @@ mod tests {
         assert_eq!(
             "strict digraph t {\n    aa[color=green]\n    subgraph v {\n        aa[shape=square]\n        subgraph vv {\n            a2 -> b2\n        }\n        aaa[color=red]\n        aaa -> bbb\n    }\n    aa -> be -> subgraph v {d -> aaa}\n    aa -> aaa -> v\n}",
             g.print(ctx.with_indent_step(4))
+        );
+    }
+
+    #[test]
+    fn mult_attr_l_s_graph_test() {
+        let mut ctx = PrinterContext::default();
+        let g = graph!(di id!("multi");
+          node!("a";attr!("shape","square")),
+          node!("aa";attr!("color","blue"),attr!("shape","Mrecord")),
+          subgraph!("v";
+            node!("aaa"; attr!("shape","square")),
+            node!("aaaa";attr!("color","red"),attr!("shape","Mrecord")),
+            edge!(node_id!("aaa") => node_id!("aaaa");attr!("label","FALSE"))
+          ),
+          edge!(node_id!("a") => node_id!("aa");attr!("label","TRUE"), attr!("color","green"))
+        );
+        assert_eq!(
+            "digraph multi {\n  a[shape=square]\n  aa[\n    color=blue,\n    shape=Mrecord\n  ]\n  subgraph v {\n    aaa[shape=square]\n    aaaa[\n      color=red,\n      shape=Mrecord\n    ]\n    aaa -> aaaa [label=FALSE]\n  }\n  a -> aa [label=TRUE,color=green]\n}",
+            g.print(ctx.with_node_mult_attr_s_l())
         );
     }
 }
