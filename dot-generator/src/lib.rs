@@ -8,7 +8,7 @@
 //!  - name or id or any other markers
 //!  - list of vec with a prefix , or seq of elems with a prefix ;
 //!
-//! #Note:
+//! # Note:
 //!  - for the list of items the way to pass vec is the following one: element(.. , vec of items)
 //!  - for the seq of items the way to pass several items is the following one: element(.. ; items+)
 //!
@@ -47,7 +47,37 @@
 //! ```
 use dot_structures::*;
 
-/// represents a port in dot lang
+/// Constructs a port in dot lang
+/// Port consists of two parts: id and directions
+/// The both can be optional.
+///
+/// # Arguments:
+///  - id: accepts id of the port. Can be constructed with id!. Can be omitted, like `port!(, "x")`
+///  - direction: accepts string. Can be omitted
+///
+/// # Examples
+/// ```rust
+///  fn port_test() {
+///     use dot_generator::*;
+///     use dot_structures::*;
+///     assert_eq!(
+///         port!(),
+///         Port(None,None)
+///     );
+///     assert_eq!(
+///         port!(,""),
+///         Port(None,Some("".to_string()))
+///     );
+///     assert_eq!(
+///         port!(id!(),""),
+///         Port(Some( Id::Anonymous("".to_string())),Some("".to_string()))
+///     );
+///     assert_eq!(
+///         port!(id!()),
+///         Port(Some( Id::Anonymous("".to_string())),None)
+///     );
+/// }
+/// ```
 #[macro_export]
 macro_rules! port {
     () => {
@@ -63,8 +93,46 @@ macro_rules! port {
         Port(Some($id), None)
     };
 }
-/// represents a node id in dot lang
-/// Essentially it is a combination of id and port
+/// Constructs a node id in dot lang.
+/// In short, it is a pair of id and port.
+/// # Arguments
+/// - id: id of the node, can be omitted. To construct id it accepts
+///     - ident (optional): `esc` or `html` prefix
+///     - Should be an expression with a result that can be transformed to string (with Display)
+/// - port: expects a `Port`. Can be constructed with `port!`
+///
+/// # Examples
+/// ```rust
+///     use dot_generator::*;
+///     use dot_structures::*;
+///
+/// fn node_id_test() {
+///         assert_eq!(
+///             node_id!(),
+///             NodeId(Id::Anonymous("".to_owned()), None)
+///         );
+///
+///         assert_eq!(
+///             node_id!("plain"),
+///             NodeId(Id::Plain("plain".to_owned()), None)
+///         );
+///
+///         assert_eq!(
+///             node_id!("plain", port!()),
+///             NodeId(Id::Plain("plain".to_owned()), Some(Port(None,None)))
+///         );
+///
+///         assert_eq!(
+///             node_id!(esc "escaped"),
+///             NodeId(Id::Escaped("\"escaped\"".to_owned()),None)
+///         );
+///         assert_eq!(
+///             node_id!(html "</br>escaped"),
+///             NodeId(Id::Html("</br>escaped".to_owned()),None)
+///         );
+///     }
+/// ```
+
 #[macro_export]
 macro_rules! node_id {
     () => {  NodeId(id!(),None) };
@@ -74,11 +142,14 @@ macro_rules! node_id {
     ($i:ident $e:expr, $p:expr) => { NodeId(id!($i$e),Some($p)) };
 }
 
-/// represents an id for node or subgraph in dot lang.
-/// #Arguments:
-///  - html - html format.
-///  - esc - escaped string. It allows the escaped quotes inside and also wraps the string to the quotas
-/// #Example:
+/// Constructs an id for node or subgraph in dot lang.
+/// # Arguments:
+///  - prefix (optional):
+///     - html: defines the id has html tags in the name
+///     - esc: encompasses the given name with quotes and denotes the string has escaped quotes
+///     - can be omitted. In that case, the plain id will be created.
+///  - Should be an expression with a result that can be transformed to string (with Display)
+/// # Examples:
 /// ```rust
 ///     fn id_test() {
 ///         use dot_generator::*;
@@ -87,7 +158,7 @@ macro_rules! node_id {
 ///         assert_eq!(id!(), Id::Anonymous("".to_string()));
 ///         assert_eq!(id!(html "<<abc>>"), Id::Html("<<abc>>".to_string()));
 ///         assert_eq!(id!("abc"), Id::Plain("abc".to_string()));
-///         assert_eq!(id!(esc r#"ab\"c"#"), Id::Escaped(r#"\"ab\"c\""#.to_string()));
+///         assert_eq!(id!(esc "ab\"c"), Id::Escaped("ab\"c".to_string()));
 ///     }
 /// ```
 #[macro_export]
@@ -106,15 +177,27 @@ macro_rules! id {
     };
 }
 
-/// represents an attribute in dot lang.
-/// # Example:
+/// Constructs an attribute in dot lang.
+/// Essentially it is a pair of key, value separated with `=`
+/// This macro composes internal parts of 2 id! macros
+///
+/// # Arguments
+///  - key prefix (optional): esc or html or empty. See `id!` macros
+///  - id value for key. Should be an expression with a result that can be transformed to string
+///  - value prefix (optional): esc or html or empty. See `id!` macros
+///  - id value for value. Should be an expression with a result that can be transformed to string
+///
+/// # Examples:
 /// ```rust
 ///     fn attr_test() {
 ///         use dot_generator::*;
 ///         use dot_structures::*;
 ///
 ///         assert_eq!(attr!("a","1"), Attribute(id!("a"), id!("1")));
-///         assert_eq!(attr!(html "a","1"), Attribute(id!(html "a"), id!("1")))
+///         assert_eq!(attr!(html "a","1"), Attribute(id!(html "a"), id!("1")));
+///         assert_eq!(attr!(esc "a","1"), Attribute(id!(esc "a"), id!("1")));
+///         assert_eq!(attr!(esc "a",esc "1"), Attribute(id!(esc "a"), id!(esc "1")));
+///         assert_eq!(attr!("a",esc "1"), Attribute(id!("a"), id!(esc "1")))
 ///     }
 /// ```
 #[macro_export]
@@ -125,9 +208,17 @@ macro_rules! attr {
     ($k:expr,$v:expr) => {Attribute(id!($k),id!($v))}
 }
 
-/// represents an element of graph or subgraph which is, in turn, just a wrapper
-/// for the underlying structure as node,edge, subgraph etc.
-/// #Example:
+/// Constructs one of elements of the graph:
+///  - Node : node in the graph
+///  - Subgraph: subgraph in the graph
+///  - Attribute: attribute of an element
+///  - GAttribute: attribute for the given graph or subgraph
+///  - Edge: edge in the graph
+///
+/// # Argument:
+/// - one of the aforementioned items.
+///
+/// # Examples:
 /// ```rust
 /// fn stmt_test() {
 ///     use dot_generator::*;
@@ -136,6 +227,10 @@ macro_rules! attr {
 ///     assert_eq!(
 ///         stmt!(node!()),
 ///         Stmt::Node(Node::new(NodeId(id!(), None), vec![]))
+///     );
+///    assert_eq!(
+///         stmt!(attr!("a","1")),
+///         Stmt::Attribute(Attribute(id!("a"), id!("1")))
 ///     );
 /// }
 /// ```
@@ -147,7 +242,7 @@ macro_rules! stmt {
 }
 
 /// represents a subgraph in dot lang.
-/// #Example:
+/// # Examples:
 /// ```rust
 ///     fn subgraph_test() {
 ///         use dot_generator::*;
@@ -379,6 +474,55 @@ macro_rules! graph {
 #[cfg(test)]
 mod tests {
     use dot_structures::*;
+
+    #[test]
+    fn port_test() {
+        assert_eq!(
+            port!(),
+            Port(None,None)
+        );
+        assert_eq!(
+            port!(,""),
+            Port(None,Some("".to_string()))
+        );
+        assert_eq!(
+            port!(id!(),""),
+            Port(Some( Id::Anonymous("".to_string())),Some("".to_string()))
+        );
+        assert_eq!(
+            port!(id!()),
+            Port(Some( Id::Anonymous("".to_string())),None)
+        );
+
+
+    }
+
+    #[test]
+    fn node_id_test() {
+        assert_eq!(
+            node_id!(),
+            NodeId(Id::Anonymous("".to_owned()), None)
+        );
+
+        assert_eq!(
+            node_id!("plain"),
+            NodeId(Id::Plain("plain".to_owned()), None)
+        );
+
+        assert_eq!(
+            node_id!("plain", port!()),
+            NodeId(Id::Plain("plain".to_owned()), Some(Port(None,None)))
+        );
+
+        assert_eq!(
+            node_id!(esc "escaped"),
+            NodeId(Id::Escaped("\"escaped\"".to_owned()),None)
+        );
+        assert_eq!(
+            node_id!(html "</br>escaped"),
+            NodeId(Id::Html("</br>escaped".to_owned()),None)
+        );
+    }
 
     #[test]
     fn graph_test() {
