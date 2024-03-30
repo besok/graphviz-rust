@@ -95,6 +95,7 @@ macro_rules! port {
 }
 /// Constructs a node id in dot lang.
 /// In short, it is a pair of id and port.
+///
 /// # Arguments
 /// - id: id of the node, can be omitted. To construct id it accepts
 ///     - ident (optional): `esc` or `html` prefix
@@ -225,12 +226,24 @@ macro_rules! attr {
 ///     use dot_structures::*;
 ///
 ///     assert_eq!(
-///         stmt!(node!()),
-///         Stmt::Node(Node::new(NodeId(id!(), None), vec![]))
+///         stmt!(node!(esc "id")), // if the id has escaped string or needs to be placed in the quotes
+///         Stmt::Node(Node::new(NodeId(id!(esc "id"), None), vec![]))
 ///     );
 ///    assert_eq!(
 ///         stmt!(attr!("a","1")),
 ///         Stmt::Attribute(Attribute(id!("a"), id!("1")))
+///     );
+///    assert_eq!(
+///         stmt!(attr!("a",esc "format")),
+///         Stmt::Attribute(Attribute(id!("a"), id!(esc "format")))
+///     );
+///    assert_eq!(
+///         stmt!(GraphAttributes::new("graph", vec![attr!("a",esc "format")])),
+///         Stmt::GAttribute(GraphAttributes::Graph(vec![attr!("a",esc "format")]))
+///     );
+///    assert_eq!(
+///         stmt!(edge!(node_id!("a") => node_id!("b"))),
+///         Stmt::Edge(edge!(node_id!("a") => node_id!("b")))
 ///     );
 /// }
 /// ```
@@ -241,18 +254,74 @@ macro_rules! stmt {
     };
 }
 
-/// represents a subgraph in dot lang.
+/// Constructs a subgraph in dot lang.
+///
+/// # Arguments:
+/// - prefix for id (optional): esc or html
+/// - id: id of the graph. Can be omitted but the separation needs to be left in like `; ...`
+/// - a collection of statements or variadic arguments but the delegates from the statement
+///
+/// Therefore, the macros accepts two different forms where the first separator denotes it:
+/// - `subgraph!(id, vec![statement])` where statement can be constructed using the `stmt!` macros
+/// - `subgraph!(id; statement_delegate, statement_delegate2, ...)
+///     where the delegates are undertaking structures. See `stmt! macros
+///
+/// # Note:
+/// - id can be left empty with varargs like that `subgraph!(; statement1, ...)`
+/// - the macros expects the statement delegates, e.g. nodes, edges, attributes. See `stmt!` macro
 /// # Examples:
 /// ```rust
 ///     fn subgraph_test() {
 ///         use dot_generator::*;
 ///         use dot_structures::*;
 ///
-///         assert_eq!(subgraph!(), Subgraph { id: Id::Anonymous("".to_string()), stmts: vec![] });
-///         assert_eq!(subgraph!("abc";node!()),
+///         assert_eq!(
+///             subgraph!(),
+///             Subgraph { id: Id::Anonymous("".to_string()), stmts: vec![] }
+///         );
+///
+///         assert_eq!(
+///                   subgraph!(
+///                         "abc";
+///                         node!("node1"),
+///                         node!("node2"),
+///                         edge!(node_id!("node1") => node_id!("node2"))
+///                   ),
+///                   Subgraph {
+///                        id: id!("abc"),
+///                        stmts: vec![
+///                             node!("node1").into(),
+///                             node!("node2").into(),
+///                             edge!(node_id!("node1") => node_id!("node2")).into()
+///                         ],
+///                    });
+///         assert_eq!(
+///                    subgraph!(
+///                         "abc",
+///                         vec![stmt!(node!("node1")), stmt!(attr!("a","b"))]),
 ///                    Subgraph {
-///                        id: Id::Plain("abc".to_string()),
-///                        stmts: vec![stmt!(node!())],
+///                        id: id!("abc"),
+///                        stmts: vec![
+///                             node!("node1").into(),
+///                             attr!("a","b").into()
+///                         ],
+///                    });
+///         assert_eq!(
+///                    subgraph!(
+///                         esc "abc";
+///                         edge!(node_id!("left") => node_id!("right"))),
+///                    Subgraph {
+///                        id: id!(esc "abc"),
+///                        stmts: vec![
+///                             edge!(node_id!("left") => node_id!("right")).into()
+///                         ],
+///                    });
+///         assert_eq!(subgraph!(; edge!(node_id!("left") => node_id!("right"))),
+///                    Subgraph {
+///                        id: Id::Anonymous("".to_string()),
+///                        stmts: vec![
+///                             edge!(node_id!("left") => node_id!("right")).into()
+///                         ],
 ///                    });
 ///     }
 /// ```
@@ -281,23 +350,56 @@ macro_rules! subgraph {
 
 }
 
-/// represents a node in dot lang.
-/// #Example:
+/// Constructs a node in dot lang.
+///
+/// # Arguments:
+/// - prefix for id (optional): esc or html
+/// - id(optional): the id for the node
+/// - port(optional): the port of the node in a format `id => port`
+/// - attributes(optional): either a vec of attributes or attributes in a form of variadic arguments
+///
+///
+/// # Examples:
 /// ```rust
 ///     fn node_test() {
 ///         use dot_generator::*;
 ///         use dot_structures::*;
 ///
 ///         assert_eq!(node!(), Node::new(NodeId(id!(), None), vec![]));
+///
 ///         assert_eq!(node!(html "abc"; attr!("a","a")),
 ///                    Node::new(NodeId(id!(html "abc"), None),
 ///                              vec![attr!("a","a")]));
-///         assert_eq!(node!(html "abc" ; attr!("a","a")),
-///                    Node::new(NodeId(id!(html "abc"), None),
+///
+///         assert_eq!(node!(esc "abc"; attr!("a","a")),
+///                    Node::new(NodeId(id!(esc "abc"), None),
 ///                              vec![attr!("a","a")]));
-///         assert_eq!(node!("abc" ; attr!("a","a"),attr!("a","a")),
+///
+///         assert_eq!(node!("abc" ; attr!("a","a"), attr!("b","b")),
+///                    Node::new(
+///                         NodeId(id!(html "abc"), None),
+///                         vec![attr!("a","a"),attr!("b","b")]
+///                     )
+///         );
+///
+///         assert_eq!(node!("abc" , vec![attr!("a","a"),attr!("a","a")]),
 ///                    Node::new(NodeId(id!( "abc"), None),
-///                              vec![attr!("a","a"), attr!("a","a")]))
+///                              vec![attr!("a","a"), attr!("a","a")])
+///         );
+///
+///         assert_eq!(
+///             node!("abc" => port!(,"id") ; attr!("a","a"),attr!("a","a")),
+///             Node::new(
+///                 NodeId(id!( "abc"), Some(Port(None,Some("id".to_string())))),
+///                              vec![attr!("a","a"), attr!("a","a")])
+///         );
+///
+///         assert_eq!(
+///             node!(esc "abc" => port!(id!("port_id")) ;
+///                     attr!("a","a"),attr!("a","a")),
+///             Node::new(NodeId(id!(esc "abc"), Some(port!(id!("port_id")))),
+///                              vec![attr!("a","a"), attr!("a","a")])
+///         );
 ///     }
 /// ```
 #[macro_export]
@@ -339,8 +441,14 @@ macro_rules! node {
     }};
 }
 
-/// represents an edge in dot lang.
-/// #Example:
+/// Constructs an edge.
+///
+/// # Arguments:
+/// - chain of edges separated by `=>`: the edge expects either `node_id!` or `subgraph!`
+/// - attributes: either a vec of attributes or attributes in a form of variadic arguments
+///
+/// # Examples:
+///
 /// ```rust
 ///     fn edge_test() {
 ///         use dot_generator::*;
@@ -348,19 +456,48 @@ macro_rules! node {
 ///
 ///          assert_eq!(
 ///             edge!(node_id!("1") => node_id!("2")),
-///             Edge { ty: EdgeTy::Pair(Vertex::N(node_id!("1")), Vertex::N(node_id!("2"))), attributes: vec![] }
+///             Edge {
+///                 ty: EdgeTy::Pair(
+///                         Vertex::N(node_id!("1")),
+///                         Vertex::N(node_id!("2"))
+///                     ),
+///                 attributes: vec![]
+///             }
 ///         );
+///
 ///         assert_eq!(
-///             edge!(node_id!("1") => node_id!("2") => subgraph!("a")),
-///             Edge { ty: EdgeTy::Chain(vec![Vertex::N(node_id!("1")), Vertex::N(node_id!("2")), Vertex::S(subgraph!("a"))]), attributes: vec![] }
+///             edge!(
+///                 node_id!("1") => node_id!("2") => subgraph!("a")
+///             ),
+///             Edge {
+///                 ty: EdgeTy::Chain(vec![
+///                         Vertex::N(node_id!("1")),
+///                         Vertex::N(node_id!("2")),
+///                         Vertex::S(subgraph!("a"))]),
+///                 attributes: vec![] }
 ///         );
+///
 ///         assert_eq!(
-///             edge!(node_id!("1") => node_id!("2"), vec![attr!("a","b")]),
-///             Edge { ty: EdgeTy::Pair(Vertex::N(node_id!("1")), Vertex::N(node_id!("2"))), attributes: vec![attr!("a","b")] }
+///             edge!(
+///                 node_id!("1") => node_id!("2"), vec![attr!("a","b")]
+///             ),
+///             Edge {
+///                 ty: EdgeTy::Pair(
+///                         Vertex::N(node_id!("1")),
+///                         Vertex::N(node_id!("2"))
+///                     ),
+///                 attributes: vec![attr!("a","b")] }
 ///         );
+///
 ///         assert_eq!(
-///             edge!(node_id!("1") => node_id!("2"); attr!("a","b")),
-///             Edge { ty: EdgeTy::Pair(Vertex::N(node_id!("1")), Vertex::N(node_id!("2"))), attributes: vec![attr!("a","b")] }
+///             edge!(node_id!("1") => node_id!("2");
+///                   attr!("a","b"), attr!("a1","b1")),
+///             Edge {
+///                 ty: EdgeTy::Pair(
+///                         Vertex::N(node_id!("1")),
+///                         Vertex::N(node_id!("2"))
+///                     ),
+///                 attributes: vec![attr!("a","b"), attr!("a1","b1")] }
 ///         );
 ///     }
 /// ```
@@ -402,10 +539,22 @@ macro_rules! edge {
     }};
 }
 
-/// represents a graph in dot lang.
-///  - strict word stands for strict in graph
-///  - di word stands for digraph
-/// #Example:
+/// Constructs a graph.
+/// # Arguments
+/// - prefix strict(optional): the prefix defines the strictness of the graph
+/// - prefix di(optional): the prefix defines the graph is a digraph
+/// - id: id of the graph. Can be constructed using `id!` macros
+/// - a collection of statements or variadic arguments but the delegates from the statement
+///
+/// Therefore, the macros accepts two different forms where the first separator denotes it:
+/// - `graph!(id, vec![statement])` where statement can be constructed using the `stmt!` macros
+/// - `graph!(id; statement_delegate, statement_delegate2, ...)
+///     where the delegates are undertaking structures. See `stmt! macros
+///
+/// # Note:
+/// - the macros expects the statement delegates, e.g. nodes, edges, attributes. See `stmt!` macro
+///
+/// # Examples:
 /// ```rust
 ///     fn graph_test() {
 ///         use dot_generator::*;
@@ -415,9 +564,54 @@ macro_rules! edge {
 ///             graph!(strict di id!("abc")),
 ///             Graph::DiGraph { id: id!("abc"), strict: true, stmts: vec![] }
 ///         );
+///
 ///         assert_eq!(
-///             graph!(strict di id!("abc");node!("abc")),
-///             Graph::DiGraph { id: id!("abc"), strict: true, stmts: vec![stmt!(node!("abc"))] }
+///             graph!(strict di id!("abc");
+///                     node!("abc"),
+///                     node!("cde")
+///             ),
+///             Graph::DiGraph {
+///                 id: id!("abc"),
+///                 strict: true,
+///                 stmts: vec![stmt!(node!("abc")),stmt!(node!("cde"))] }
+///         );
+///
+///         assert_eq!(
+///             graph!(di id!("abc");
+///                     edge!(node_id!("a") => node_id!("b"); attr!("a","b")),
+///                     subgraph!(
+///                         "abc",
+///                         vec![stmt!(node!("node1")), stmt!(attr!("a","b"))]
+///                     )
+///             ),
+///             Graph::DiGraph {
+///                 id: id!("abc"),
+///                 strict: false,
+///                 stmts: vec![
+///                         edge!(node_id!("a") => node_id!("b"); attr!("a","b")).into(),
+///                         subgraph!(
+///                             "abc",
+///                             vec![stmt!(node!("node1")), stmt!(attr!("a","b"))]
+///                         ).into()
+///                         ]
+///             });
+///
+///         assert_eq!(
+///             graph!(di id!("abc"),
+///                     vec![
+///                         stmt!(edge!(node_id!("a") => node_id!("b"); attr!("a","b"))),
+///                         stmt!(node!("e")),
+///                         stmt!(attr!("attr","val")),
+///                     ]
+///             ),
+///             Graph::DiGraph {
+///                 id: id!("abc"),
+///                 strict: false,
+///                 stmts: vec![
+///                     edge!(node_id!("a") => node_id!("b"); attr!("a","b")).into(),
+///                     node!("e").into(),
+///                     attr!("attr","val").into()
+///                 ] }
 ///         );
 ///     }
 /// ```

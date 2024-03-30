@@ -115,12 +115,10 @@ strict digraph t {                     : graph with t as id
 ### Generate a dot structure
 
 The library provides a set of macros alleviating the process of graph construction.
+The details including examples for every macros are given in the documentation for the macros 
+and can be found in the [ `dot_generator::*`](dot-generator/src/lib.rs)  
 
-Most of them, which have the sequence pattern(nodes with attributes, graphs or subgraphs with statements etc.)
-have the following syntax:
-
-- name or id or any other markers
-- list of structure with a comma or seq of elems with a semicolon
+#### Example
 
 ```rust
 assert_eq!(
@@ -130,11 +128,7 @@ assert_eq!(
         vec![attr!("atr1", "val1"), attr!("atr2", "val2")]
     )
 );
-```
 
-The macros can be found in `dot_generator::*` and has the following denotion:
-
-```rust
 fn graph_test() {
     use dot_generator::*;
     use dot_structures::*;
