@@ -24,5 +24,8 @@
   - fix some bugs with port parsing
 - **`0.7.2`**
   - fix formatting
+- **`0.8.0`**
+  - update macros in the generator
+  - add macros to construct graph attributes
 
 

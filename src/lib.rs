@@ -19,7 +19,6 @@
 //!     printer::{DotPrinter, PrinterContext},
 //! };
 //!
-//! fn parse_test() {
 //!     let g: Graph = parse(
 //!         r#"
 //!         strict digraph t {
@@ -50,16 +49,13 @@
 //!           edge!(node_id!("aa") => node_id!("be") => subgraph!("v"; edge!(node_id!("d") => node_id!("aaa")))),
 //!           edge!(node_id!("aa") => node_id!("aaa") => node_id!("v"))
 //!         )
-//!     )
-//! }
+//!     );
 //!
-//! fn print_test() {
 //!     let mut g = graph!(strict di id!("id"));
 //!     assert_eq!(
-//!         "strict digraph id {}".to_string(),
+//!         "strict digraph id {\n\n}".to_string(),
 //!         g.print(&mut PrinterContext::default())
 //!     );
-//! }
 //!
 //! fn output_test() {
 //!     let mut g = graph!(id!("id");

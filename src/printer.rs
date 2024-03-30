@@ -5,11 +5,9 @@
 //!     use dot_generator::*;
 //!     use dot_structures::*;
 //!     use graphviz_rust::printer::{PrinterContext,DotPrinter};
-//!     fn subgraph_test() {
 //!         let mut ctx = PrinterContext::default();
 //!         let s = subgraph!("id"; node!("abc"), edge!(node_id!("a") => node_id!("b")));
-//!         assert_eq!(s.print(&mut ctx), "subgraph id {\n    abc\n    a -- b \n}".to_string());
-//!     }
+//!         assert_eq!(s.print(&mut ctx), "subgraph id {\n  abc\n  a -- b\n}".to_string());
 //! ```
 //!
 //! [`graphviz` DOT language]: https://graphviz.org/doc/info/lang.html
@@ -49,13 +47,11 @@ pub type AttributeValuePrinter = dyn Fn(&str, &str, &str, usize) -> String;
 ///
 /// # Example:
 /// ```rust
-/// fn ctx() {
 ///     use self::graphviz_rust::printer::PrinterContext;
 ///
 ///     let mut ctx = PrinterContext::default();
 ///     ctx.always_inline();
 ///     ctx.with_indent_step(4);
-/// }
 /// ```
 pub struct PrinterContext {
     /// internal flag which is decoupled from the graph
@@ -190,7 +186,6 @@ impl Default for PrinterContext {
 ///
 /// # Example:
 ///  ```rust
-///     fn test(){
 ///         use dot_generator::*;
 ///         use dot_structures::*;
 ///         use self::graphviz_rust::printer::PrinterContext;
@@ -202,7 +197,6 @@ impl Default for PrinterContext {
 ///         let graph = graph!(strict di id!("t"));
 ///
 ///         let string = graph.print(&mut ctx);
-///     }
 /// ```
 pub trait DotPrinter {
     fn print(&self, ctx: &mut PrinterContext) -> String;
