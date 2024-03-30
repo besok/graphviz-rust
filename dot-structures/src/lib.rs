@@ -106,9 +106,6 @@ impl Node {
     pub fn new(id: NodeId, attributes: Vec<Attribute>) -> Self {
         Node { id, attributes }
     }
-    fn add_attr(&mut self, attr: Attribute) {
-        self.attributes.push(attr)
-    }
 }
 
 /// the component represents a wrapper to keep sustainability in subgraph and graph bodies.
