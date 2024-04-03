@@ -107,16 +107,12 @@ pub extern crate dot_structures;
 pub extern crate into_attr;
 pub extern crate into_attr_derive;
 
-use std::io;
-
 use dot_structures::*;
 
-use crate::{
-    cmd::CommandArg,
-    printer::{DotPrinter, PrinterContext},
-};
+use crate::printer::{DotPrinter, PrinterContext};
 
 pub mod attributes;
+#[cfg(feature = "graphviz-exec")]
 pub mod cmd;
 mod parser;
 pub mod printer;
@@ -135,29 +131,33 @@ pub fn print(graph: Graph, ctx: &mut PrinterContext) -> String {
     graph.print(ctx)
 }
 
+#[cfg(feature = "graphviz-exec")]
+use cmd::CommandArg;
+#[cfg(feature = "graphviz-exec")]
+use std::io;
+
 /// Executes the [`dot` command line executable](https://graphviz.org/doc/info/command.html)
 /// using the given [Graph], [PrinterContext] and command line arguments.
+#[cfg(feature = "graphviz-exec")]
 pub fn exec(graph: Graph, ctx: &mut PrinterContext, args: Vec<CommandArg>) -> io::Result<Vec<u8>> {
     cmd::exec(print(graph, ctx), args)
 }
 
 /// Executes the [`dot` command line executable](https://graphviz.org/doc/info/command.html)
 /// using the given string dot notation, [PrinterContext] and command line arguments.
+#[cfg(feature = "graphviz-exec")]
 pub fn exec_dot(dot_graph: String, args: Vec<CommandArg>) -> io::Result<Vec<u8>> {
     cmd::exec(dot_graph, args)
 }
 
 #[cfg(test)]
 mod tests {
-    use std::{fs, process::Command};
 
     use dot_generator::*;
     use dot_structures::*;
 
     use crate::{
-        attributes::*,
-        cmd::{CommandArg, Format},
-        exec, exec_dot, parse,
+        parse,
         printer::{DotPrinter, PrinterContext},
     };
 
@@ -217,7 +217,16 @@ mod tests {
     const LS: &'static str = "\n";
 
     #[test]
+    #[cfg(feature = "graphviz-exec")]
     fn exec_test() {
+        use std::{fs, process::Command};
+
+        use crate::{
+            attributes::{color_name, shape, NodeAttributes},
+            cmd::{CommandArg, Format},
+            exec,
+        };
+
         let g = graph!(id!("id");
             node!("nod"),
             subgraph!("sb";
@@ -266,7 +275,14 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "graphviz-exec")]
     fn output_exec_from_test() {
+        use crate::{
+            attributes::{color_name, shape, NodeAttributes},
+            cmd::Format,
+            exec_dot,
+        };
+
         let g = graph!(id!("id");
              node!("nod"),
              subgraph!("sb";
