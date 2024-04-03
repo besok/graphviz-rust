@@ -11,6 +11,10 @@ readme = "README.md"
 repository = "https://github.com/besok/graphviz-rust"
 description = "The library provides the basic access to the graphs in graphviz format with ability to import into or export from it."
 
+[features]
+graphviz-exec = []
+default = ["graphviz-exec"]
+
 [dependencies]
 dot-generator = "0.2.0"
 dot-structures = "0.1.1"
