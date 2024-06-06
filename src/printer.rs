@@ -36,7 +36,7 @@ use dot_structures::{
 ///         "digraph attr_formatting {\n  abc[custom=\"**Custom Text**\"]\n  a -> b\n}",
 ///         g.print(
 ///             ctx.with_node_mult_attr_s_l()
-///                 .with_attribute_formatter(id!("custom"), formatter)
+///                 .with_attr_value_printer(id!("custom"), formatter)
 ///         )
 ///     );
 /// }
