@@ -60,6 +60,8 @@ pub struct PrinterContext {
     semi: bool,
     /// a flag, print multiple node attributes on seperate lines
     mult_node_attr_on_s_l: bool,
+    /// include a comma after node attributes on seperate lines
+    mult_node_attr_on_s_l_comma: bool,
     /// an initial indent. 0 by default
     indent: usize,
     /// a step of the indent. 2 by default
@@ -89,6 +91,11 @@ impl PrinterContext {
     /// Print multiple attributes on seperate lines
     pub fn with_node_mult_attr_s_l(&mut self) -> &mut PrinterContext {
         self.mult_node_attr_on_s_l = true;
+        self
+    }
+    /// Don't include a comma when printing attributes on seperate lines
+    pub fn with_no_node_mult_attr_s_l_comma(&mut self) -> &mut PrinterContext {
+        self.mult_node_attr_on_s_l_comma = false;
         self
     }
     /// Set a step of the indent.
@@ -124,6 +131,7 @@ impl PrinterContext {
             is_digraph: false,
             semi,
             mult_node_attr_on_s_l: false,
+            mult_node_attr_on_s_l_comma: true,
             indent: 0,
             indent_step,
             inline_size,
@@ -170,6 +178,7 @@ impl Default for PrinterContext {
         PrinterContext {
             is_digraph: false,
             mult_node_attr_on_s_l: false,
+            mult_node_attr_on_s_l_comma: true,
             semi: false,
             indent: 0,
             indent_step: 2,
@@ -263,7 +272,18 @@ impl DotPrinter for Vec<Attribute> {
                 "[{}{}{}{}{}]",
                 ctx.l_s,
                 ctx.indent(),
-                attrs.join(&format!(",{}{}", ctx.l_s, ctx.indent())),
+                attrs.join(&format!(
+                    "{}{}{}",
+                    {
+                        if ctx.is_inline_on() || ctx.mult_node_attr_on_s_l_comma {
+                            ","
+                        } else {
+                            ""
+                        }
+                    },
+                    ctx.l_s,
+                    ctx.indent()
+                )),
                 ctx.l_s,
                 indent,
             );
@@ -568,6 +588,44 @@ mod tests {
         assert_eq!(
             "digraph multi {\n  a[shape=square]\n  aa[\n    color=blue,\n    shape=Mrecord\n  ]\n  subgraph v {\n    aaa[shape=square]\n    aaaa[\n      color=red,\n      shape=Mrecord\n    ]\n    aaa -> aaaa [label=FALSE]\n  }\n  a -> aa [label=TRUE,color=green]\n}",
             g.print(ctx.with_node_mult_attr_s_l())
+        );
+    }
+
+    #[test]
+    fn mult_attr_l_s_graph_test_no_comma() {
+        let mut ctx = PrinterContext::default();
+        let g = graph!(di id!("multi");
+          node!("a";attr!("shape","square")),
+          node!("aa";attr!("color","blue"),attr!("shape","Mrecord")),
+          subgraph!("v";
+            node!("aaa"; attr!("shape","square")),
+            node!("aaaa";attr!("color","red"),attr!("shape","Mrecord")),
+            edge!(node_id!("aaa") => node_id!("aaaa");attr!("label","FALSE"))
+          ),
+          edge!(node_id!("a") => node_id!("aa");attr!("label","TRUE"), attr!("color","green"))
+        );
+        assert_eq!(
+            "digraph multi {\n  a[shape=square]\n  aa[\n    color=blue\n    shape=Mrecord\n  ]\n  subgraph v {\n    aaa[shape=square]\n    aaaa[\n      color=red\n      shape=Mrecord\n    ]\n    aaa -> aaaa [label=FALSE]\n  }\n  a -> aa [label=TRUE,color=green]\n}",
+            g.print(ctx.with_node_mult_attr_s_l().with_no_node_mult_attr_s_l_comma())
+        );
+    }
+
+    #[test]
+    fn mult_attr_l_s_graph_test_no_comma_no_inline() {
+        let mut ctx = PrinterContext::default();
+        let g = graph!(di id!("multi");
+          node!("a";attr!("shape","square")),
+          node!("aa";attr!("color","blue"),attr!("shape","Mrecord")),
+          subgraph!("v";
+            node!("aaa"; attr!("shape","square")),
+            node!("aaaa";attr!("color","red"),attr!("shape","Mrecord")),
+            edge!(node_id!("aaa") => node_id!("aaaa");attr!("label","FALSE"))
+          ),
+          edge!(node_id!("a") => node_id!("aa");attr!("label","TRUE"), attr!("color","green"))
+        );
+        assert_eq!(
+            "digraph multi {\n  a[shape=square]\n  aa[\n    color=blue\n    shape=Mrecord\n  ]\n  subgraph v {\n    aaa[shape=square]\n    aaaa[\n      color=red\n      shape=Mrecord\n    ]\n    aaa -> aaaa [label=FALSE]\n  }\n  a -> aa [\n    label=TRUE\n    color=green\n  ]\n}",
+            g.print(ctx.with_node_mult_attr_s_l().with_no_node_mult_attr_s_l_comma().with_inline_size(0))
         );
     }
 
