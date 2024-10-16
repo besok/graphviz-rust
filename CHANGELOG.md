@@ -27,5 +27,7 @@
 - **`0.8.0`**
   - update macros in the generator
   - add macros to construct graph attributes
+- **`0.9.1`**
+  - add configurable comma between attributes on multiple lines to PrinterContext
 
 
