@@ -59,10 +59,10 @@ pub(crate) fn exec(graph: String, args: Vec<CommandArg>) -> io::Result<Vec<u8>> 
         do_exec(path.to_string_lossy().to_string(), args).and_then(|o| {
             if o.status.code().map(|c| c != 0).unwrap_or(true) {
                 let mes = String::from_utf8_lossy(&o.stderr).to_string();
-                path.close().unwrap();
+                path.close()?;
                 Err(std::io::Error::new(ErrorKind::Other, mes))
             } else {
-                path.close().unwrap();
+                path.close()?;
                 Ok(o.stdout)
             }
         })
