@@ -46,8 +46,7 @@
 //!
 //! [`dot` command line executable]: https://graphviz.org/doc/info/command.html
 use std::{
-    io::{self, ErrorKind, Write},
-    process::{Command, Output},
+    io::{self, ErrorKind, Write}, process::{Command, Output}
 };
 
 use tempfile::NamedTempFile;
@@ -55,12 +54,14 @@ use tempfile::NamedTempFile;
 pub(crate) fn exec(graph: String, args: Vec<CommandArg>) -> io::Result<Vec<u8>> {
     let args = args.into_iter().map(|a| a.prepare()).collect();
     temp_file(graph).and_then(|f| {
-        let path = f.path().to_string_lossy().to_string();
-        do_exec(path, args).and_then(|o| {
+        let path = f.into_temp_path();
+        do_exec(path.to_string_lossy().to_string(), args).and_then( |o| {
             if o.status.code().map(|c| c != 0).unwrap_or(true) {
                 let mes = String::from_utf8_lossy(&o.stderr).to_string();
+                path.close().unwrap();
                 Err(std::io::Error::new(ErrorKind::Other, mes))
             } else {
+                path.close().unwrap();
                 Ok(o.stdout)
             }
         })
