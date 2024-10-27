@@ -29,5 +29,8 @@
   - add macros to construct graph attributes
 - **`0.9.1`**
   - add configurable comma between attributes on multiple lines to PrinterContext
+- **`0.9.2`**
+  - Fix bugs with executing dot on Windows
+
 
 
