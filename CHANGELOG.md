@@ -31,6 +31,8 @@
   - add configurable comma between attributes on multiple lines to PrinterContext
 - **`0.9.2`**
   - Fix bugs with executing dot on Windows
+- **`0.9.3`**
+  - make some methods public
 
 
 
