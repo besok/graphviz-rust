@@ -156,7 +156,7 @@ pub struct Subgraph {
 }
 
 impl Subgraph {
-    fn add_stmt(&mut self, stmt: Stmt) {
+    pub fn add_stmt(&mut self, stmt: Stmt) {
         self.stmts.push(stmt)
     }
 }
