@@ -17,7 +17,7 @@ default = ["graphviz-exec"]
 
 [dependencies]
 dot-generator = "0.2.0"
-dot-structures = "0.1.1"
+dot-structures = "0.1.2"
 into-attr = "0.1.1"
 into-attr-derive = "0.2.1"
 pest = "2.0"
