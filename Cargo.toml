@@ -1,6 +1,6 @@
 [package]
 name = "graphviz-rust"
-version = "0.9.4"
+version = "0.9.5"
 authors = ["BorisZhguchev <zhguchev@gmail.com>"]
 categories = ["parsing", "visualization", "api-bindings"]
 edition = "2021"
