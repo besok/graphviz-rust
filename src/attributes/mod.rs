@@ -305,6 +305,15 @@ generate_attr!(enum color_name;
     //endregion
 );
 
+impl NodeAttributes {
+    pub fn margin_separate(horizontal: f32, vertical: f32) -> Attribute {
+        Attribute(
+            id!("margin"),
+            id!(format!("{},{}", horizontal, vertical)),
+        )
+    }
+}
+
 #[cfg(test)]
 pub mod tests {
     use dot_generator::attr;
@@ -320,5 +329,8 @@ pub mod tests {
             attr!("bgcolor", "antiquewhite1")
         );
         assert_eq!(color::default().into_attr(), attr!("color", "black"));
+
+        assert_eq!(NodeAttributes::margin(1.0), attr!("margin", "1"));
+        assert_eq!(NodeAttributes::margin_separate(1.0, 2.0), attr!("margin", "1,2"));
     }
 }

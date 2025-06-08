@@ -63,7 +63,7 @@ macro_rules! generate_attr {
              }
         )+
 
-    };
+    }; 
     (struct $name:tt for $($owners:tt),+; $ty:tt; $default:expr) =>{
          as_item! {
              #[derive(Debug,PartialEq, IntoAttribute)]
