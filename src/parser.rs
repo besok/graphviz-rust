@@ -106,7 +106,7 @@ fn process_subgraph(rule: Pair<Rule>) -> Subgraph {
     let mut sub_r = rule.into_inner();
     let id = match sub_r.peek().map(|r| r.as_rule()) {
         Some(Rule::id) => process_id(sub_r.next().unwrap()),
-        _ => Id::Anonymous(rand::random::<usize>().to_string()),
+        _ => Id::Anonymous(rand::random::<u64>().to_string()),
     };
     let stmts = process_body(sub_r.next().unwrap());
     Subgraph { id, stmts }
@@ -214,7 +214,7 @@ fn process_graph(rule: Pair<Rule>) -> Graph {
 
     let id = match graph_r.peek().map(|r| r.as_rule()) {
         Some(Rule::id) => process_id(graph_r.next().unwrap()),
-        _ => Id::Anonymous(rand::random::<usize>().to_string()),
+        _ => Id::Anonymous(rand::random::<u64>().to_string()),
     };
 
     let stmts = process_body(graph_r.next().unwrap());
