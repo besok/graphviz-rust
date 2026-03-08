@@ -26,7 +26,7 @@ fn down(rule: Pair<Rule>) -> Pair<Rule> {
     rule.into_inner().next().unwrap()
 }
 
-fn do_parse(input: &str, ty: Rule) -> Result<Pairs<Rule>, Error<Rule>> {
+fn do_parse(input: &str, ty: Rule) -> Result<Pairs<'_, Rule>, Error<Rule>> {
     DotParser::parse(ty, input)
 }
 
