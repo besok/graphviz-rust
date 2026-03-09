@@ -290,7 +290,7 @@ impl DotPrinter for Vec<Attribute> {
             ctx.indent_shrink();
             r
         } else {
-            format!("[{}]", attrs.join(","))
+            format!("[{}]", attrs.join(" "))
         }
     }
 }
