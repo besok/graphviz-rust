@@ -33,6 +33,7 @@
   - Fix bugs with executing dot on Windows
 - **`0.9.3`**
   - make some methods public
-
+- **`0.9.7`**
+  - minor changes for printer
 
 
