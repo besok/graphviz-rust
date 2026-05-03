@@ -144,7 +144,7 @@ impl CommandArg {
 /// visualization
 ///
 /// <https://graphviz.org/docs/layouts/>
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum Layout {
     Dot,
     Neato,
@@ -160,7 +160,7 @@ pub enum Layout {
 /// applications.
 ///
 /// <https://graphviz.org/docs/outputs/>
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum Format {
     Bmp,
     Cgimage,
