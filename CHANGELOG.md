@@ -35,5 +35,6 @@
   - make some methods public
 - **`0.9.7`**
   - minor changes for printer
-
+- **`0.9.8`**
+  - add eq for some structs
 
