@@ -497,7 +497,7 @@ mod tests {
     fn graph_attr_test() {
         let mut ctx = PrinterContext::default();
         let n_attr = GraphAttributes::Node(vec![attr!("a", 2), attr!("b", 3)]);
-        assert_eq!(n_attr.print(&mut ctx), "node[a=2,b=3]".to_string());
+        assert_eq!(n_attr.print(&mut ctx), "node[a=2 b=3]".to_string());
     }
 
     #[test]
