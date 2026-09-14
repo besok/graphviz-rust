@@ -38,3 +38,7 @@
 - **`0.9.8`**
   - add eq for some structs
 
+- **`0.9.9`**
+  - fix a bug with anon id of the graphs
+  
+
