@@ -106,7 +106,7 @@ fn process_subgraph(rule: Pair<Rule>) -> Subgraph {
     let mut sub_r = rule.into_inner();
     let id = match sub_r.peek().map(|r| r.as_rule()) {
         Some(Rule::id) => process_id(sub_r.next().unwrap()),
-        _ => Id::Anonymous(rand::random::<u64>().to_string()),
+        _ => Id::Anonymous(String::new()),
     };
     let stmts = process_body(sub_r.next().unwrap());
     Subgraph { id, stmts }
@@ -214,7 +214,7 @@ fn process_graph(rule: Pair<Rule>) -> Graph {
 
     let id = match graph_r.peek().map(|r| r.as_rule()) {
         Some(Rule::id) => process_id(graph_r.next().unwrap()),
-        _ => Id::Anonymous(rand::random::<u64>().to_string()),
+        _ => Id::Anonymous(String::new()),
     };
 
     let stmts = process_body(graph_r.next().unwrap());
@@ -227,6 +227,35 @@ fn process_graph(rule: Pair<Rule>) -> Graph {
 
 #[cfg(test)]
 mod test {
+    #[test]
+    fn parsing_the_same_source_twice_is_stable() {
+        for src in ["digraph { }", "digraph { subgraph { a } }",
+                    "digraph G { subgraph { a } }", "digraph G { subgraph S { a } }"] {
+            assert_eq!(parse(src).unwrap(), parse(src).unwrap(), "L1 violated by: {src}");
+        }
+    }
+
+    #[test]
+    fn indentation_does_not_change_the_graph() {
+        let a = parse("digraph { subgraph { a } }").unwrap();
+        let b = parse("digraph {\n    subgraph {\n        a\n    }\n}").unwrap();
+        assert_eq!(a, b);
+    }
+
+    #[test]
+    fn parsed_and_constructed_agree() {
+        let parsed = parse("digraph { subgraph { a } }").unwrap();
+        let built = Graph::DiGraph {
+            id: id!(),
+            strict: false,
+            stmts: vec![Stmt::Subgraph(Subgraph {
+                id: id!(),
+                stmts: vec![Stmt::Node(node!("a"))],
+            })],
+        };
+        assert_eq!(parsed, built);
+    }
+
     use dot_generator::{attr, edge, graph, id, node, node_id, port, stmt, subgraph};
     use dot_structures::*;
     use pest::iterators::Pair;
