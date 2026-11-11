@@ -1,6 +1,7 @@
-WHITESPACE = _{ " " | "\t" | "\r\n" | "\n" }
+WHITESPACE = _{ " " | "\t" | "\r\n" | "\r" | "\n" }
 COMMENT    = _{("/*" ~ (!"*/" ~ ANY)* ~ "*/") | (("#" | "//") ~ (!NEWLINE ~ ANY)* ~ NEWLINE?) }
-word = _{ ('a'..'z' | 'A'..'Z' | "_")+ }
+word = _{ ASCII_ALPHA | "_" | '\u{0080}'..'\u{10ffff}' }
+id_continue = _{ word | ASCII_DIGIT }
 arr = _{"->" | "--"}
 char = {
     !("\"" | "\\") ~ ANY
@@ -8,32 +9,36 @@ char = {
 }
 
 inner = ${ char* }
-number = ${"-"? ~ (("0" | ASCII_NONZERO_DIGIT ~ ASCII_DIGIT*) ~ ("." ~ ASCII_DIGIT+)? | ("." ~ ASCII_DIGIT+))}
+number = ${ "-"? ~ (ASCII_DIGIT+ ~ ("." ~ ASCII_DIGIT*)? | "." ~ ASCII_DIGIT+) ~ !(id_continue | ".") }
 string_qt = ${ "\"" ~ inner ~ "\"" }
-html = ${"<" ~ (!(">" ~ WHITESPACE* ~">") ~ ANY)+ ~ ">" ~ WHITESPACE* ~ ">"}
-plain = ${(word ~ (word | ASCII_DIGIT)*) | number}
+quoted_id = { string_qt ~ ("+" ~ string_qt)* }
+html_quoted = _{ "\"" ~ (!"\"" ~ ANY)* ~ "\"" | "'" ~ (!"'" ~ ANY)* ~ "'" }
+html_inner = ${ "<" ~ (html_inner | html_quoted | !("<" | ">") ~ ANY)* ~ ">" }
+html = ${ "<" ~ (html_inner | !("<" | ">") ~ ANY)* ~ ">" }
+plain = ${ word ~ id_continue* | number }
 
 
-compass = ${"n" | "ne" | "e" | "se" | "s" | "sw" | "w" | "nw" | "c" | "_"}
+compass = { id }
 
 port = {":" ~ id ~ (":" ~ compass)? }
-id = {plain | html | string_qt}
+id = {plain | html | quoted_id}
 node_id = {id ~ port?}
 attr = {bare_attr ~ (";" |",")?}
 attr_list = {("[" ~ attr* ~ "]")+}
-node = {node_id ~ attr_list*}
+node = {node_id ~ attr_list?}
 
-attr_mark = {"graph" | "node" | "edge"}
+attr_mark = @{ (^"graph" | ^"node" | ^"edge") ~ !id_continue }
 attr_stmt = {attr_mark ~ attr_list}
 bare_attr = {id ~ "=" ~ id}
 edge_tail = {arr ~ vertex}
 edge = {vertex ~ edge_tail+}
 edge_stmt = {edge ~ attr_list?}
 vertex = { subgraph | node_id }
-subgraph = {"subgraph" ~ id? ~ body}
-stmt = {attr_stmt | subgraph | bare_attr | edge_stmt | node }
+subgraph_keyword = @{ ^"subgraph" ~ !id_continue }
+subgraph = { (subgraph_keyword ~ id?)? ~ body }
+stmt = {attr_stmt | bare_attr | edge_stmt | subgraph | node }
 body = {"{" ~ (stmt ~ ";"?)* ~"}"}
-strict = {"strict"}
-graph_ty = {"graph" | "digraph"}
+strict = @{ ^"strict" ~ !id_continue }
+graph_ty = @{ (^"graph" | ^"digraph") ~ !id_continue }
 graph = {strict? ~ graph_ty ~ id? ~ body}
 file = {SOI ~ graph ~ EOI }

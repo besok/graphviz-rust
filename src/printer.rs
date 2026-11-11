@@ -389,7 +389,9 @@ impl DotPrinter for Graph {
 impl DotPrinter for Vec<Stmt> {
     fn print(&self, ctx: &mut PrinterContext) -> String {
         let attrs: Vec<String> = self.iter().map(|e| e.print(ctx)).collect();
-        attrs.join(ctx.l_s.as_str())
+        // Inline edge subgraphs still need token boundaries between statements.
+        // An empty separator changes `{A; B}` into the unrelated node `{AB}`.
+        attrs.join(if ctx.l_s.is_empty() { ";" } else { ctx.l_s.as_str() })
     }
 }
 
@@ -527,7 +529,7 @@ mod tests {
           edge!(node_id!("aa") => node_id!("aaa") => node_id!("v"))
         );
         assert_eq!(
-            r#"strict digraph t {aa[color=green]subgraph v {aa[shape=square]subgraph vv {a2 -> b2}aaa[color=red]aaa -> bbb}aa -> be -> subgraph v {d -> aaa}aa -> aaa -> v}"#,
+            r#"strict digraph t {aa[color=green];subgraph v {aa[shape=square];subgraph vv {a2 -> b2};aaa[color=red];aaa -> bbb};aa -> be -> subgraph v {d -> aaa};aa -> aaa -> v}"#,
             g.print(&mut ctx)
         );
     }
