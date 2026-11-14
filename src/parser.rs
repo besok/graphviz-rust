@@ -52,10 +52,44 @@ fn process_attr(rule: Pair<Rule>) -> Attribute {
 
 fn process_id(rule: Pair<Rule>) -> Id {
     let val = rule.as_str().to_string();
-    match down(rule).as_rule() {
+    let inner = down(rule);
+    match inner.as_rule() {
         Rule::plain => Id::Plain(val),
         Rule::html => Id::Html(val),
-        Rule::string_qt => Id::Escaped(val),
+        // DOT concatenates quoted contents, retaining attribute escapes.
+        Rule::quoted_id => {
+            let mut joined = String::from("\"");
+            for part in inner.into_inner() {
+                let raw = part.as_str();
+                let mut chars = raw[1..raw.len() - 1].chars().peekable();
+                while let Some(c) = chars.next() {
+                    if c == '\\' {
+                        match chars.peek() {
+                            Some('\n') => {
+                                chars.next();
+                                continue;
+                            }
+                            Some('\r') => {
+                                chars.next();
+                                if chars.peek() == Some(&'\n') {
+                                    chars.next();
+                                }
+                                continue;
+                            }
+                            Some(_) => {
+                                joined.push(c);
+                                joined.push(chars.next().unwrap());
+                                continue;
+                            }
+                            None => {}
+                        }
+                    }
+                    joined.push(c);
+                }
+            }
+            joined.push('"');
+            Id::Escaped(joined)
+        }
         p => panic!("unreachable, got {:?}", p),
     }
 }
@@ -78,7 +112,10 @@ fn process_port(port: Pair<Rule>) -> Port {
             Rule::id => {
                 let mb_id_mb_compass = process_id(r);
                 if let Some(r) = port_r.next() {
-                    Port(Some(mb_id_mb_compass), Some(r.as_str().to_string()))
+                    let compass = match process_id(down(r)) {
+                        Id::Plain(v) | Id::Escaped(v) | Id::Html(v) | Id::Anonymous(v) => v,
+                    };
+                    Port(Some(mb_id_mb_compass), Some(compass))
                 } else {
                     parse_compass_manually(mb_id_mb_compass.clone())
                         .map(|s| Port(None, Some(s)))
@@ -104,6 +141,9 @@ fn process_node_id(rule: Pair<Rule>) -> NodeId {
 
 fn process_subgraph(rule: Pair<Rule>) -> Subgraph {
     let mut sub_r = rule.into_inner();
+    if matches!(sub_r.peek().map(|r| r.as_rule()), Some(Rule::subgraph_keyword)) {
+        sub_r.next();
+    }
     let id = match sub_r.peek().map(|r| r.as_rule()) {
         Some(Rule::id) => process_id(sub_r.next().unwrap()),
         _ => Id::Anonymous(String::new()),
@@ -183,9 +223,9 @@ fn process_edge_stmt(rule: Pair<Rule>) -> Edge {
 
 fn process_attr_stmt(rule: Pair<Rule>) -> GraphAttributes {
     let mut stmts_r = rule.into_inner();
-    let mark = stmts_r.next().unwrap().as_str();
+    let mark = stmts_r.next().unwrap().as_str().to_ascii_lowercase();
     let attrs = process_attr_list(stmts_r.next().unwrap());
-    GraphAttributes::new(mark, attrs)
+    GraphAttributes::new(&mark, attrs)
 }
 
 fn process_stmt(rule: Pair<Rule>) -> Stmt {
@@ -210,7 +250,7 @@ fn process_graph(rule: Pair<Rule>) -> Graph {
         _ => false,
     };
 
-    let is_di = matches!(graph_r.next().map(|r| r.as_str()), Some("digraph"));
+    let is_di = graph_r.next().unwrap().as_str().eq_ignore_ascii_case("digraph");
 
     let id = match graph_r.peek().map(|r| r.as_rule()) {
         Some(Rule::id) => process_id(graph_r.next().unwrap()),
@@ -638,4 +678,89 @@ mod test {
         digraph test { A:s -> B;}"#).unwrap();
         assert_eq!(g, graph!(di id!("test"); edge!(node_id!("A", port!(,"s")) => node_id!("B"))))
     }
+
+    #[test]
+    fn unicode_ids_and_dot_numerals() {
+        assert_eq!(process_id(_parse("été", Rule::id)), id!("été"));
+        assert_eq!(process_id(_parse("节点_1", Rule::id)), id!("节点_1"));
+        for numeral in ["1.", "-.5", "007", "-1.25"] {
+            assert_eq!(process_id(_parse(numeral, Rule::id)), id!(numeral));
+        }
+    }
+
+    #[test]
+    fn quoted_ids_concatenate_and_join_line_continuations() {
+        assert_eq!(
+            process_id(_parse(r#""ab" + "cd""#, Rule::id)),
+            id!(esc "abcd")
+        );
+        assert_eq!(
+            process_id(_parse("\"ab\\\ncd\" + \"e\\\r\nf\"", Rule::id)),
+            id!(esc "abcdef")
+        );
+        // Other escapes are kept for the attribute that interprets them.
+        assert_eq!(
+            process_id(_parse(r#""a\lb""#, Rule::id)),
+            id!(esc r#"a\lb"#)
+        );
+    }
+
+    #[test]
+    fn html_ids_may_be_single_level_or_nested() {
+        assert_eq!(process_id(_parse("<abc>", Rule::id)), id!(html "<abc>"));
+        assert_eq!(
+            process_id(_parse("<<b>x &gt; y</b>>", Rule::id)),
+            id!(html "<<b>x &gt; y</b>>")
+        );
+        assert_eq!(
+            process_id(_parse(r#"<<td title="a>b">x</td>>"#, Rule::id)),
+            id!(html r#"<<td title="a>b">x</td>>"#)
+        );
+    }
+
+    #[test]
+    fn keywords_are_case_insensitive_and_need_a_word_boundary() {
+        let g = parse("DiGraph G { NODE [shape=box]; SubGraph s { a } }").unwrap();
+        assert!(matches!(g, Graph::DiGraph { .. }));
+        assert!(matches!(
+            process_stmt(_parse("nodes", Rule::stmt)),
+            Stmt::Node(_)
+        ));
+        assert!(matches!(
+            process_stmt(_parse("edge_x", Rule::stmt)),
+            Stmt::Node(_)
+        ));
+        assert!(matches!(
+            process_stmt(_parse("Edge [color=red]", Rule::stmt)),
+            Stmt::GAttribute(GraphAttributes::Edge(_))
+        ));
+    }
+
+    #[test]
+    fn compass_points_may_be_any_id() {
+        assert_eq!(
+            process_node_id(_parse(r#"a:p:"ne""#, Rule::node_id)),
+            NodeId(id!("a"), Some(Port(Some(id!("p")), Some(r#""ne""#.to_string()))))
+        );
+        assert!(parse("graph { a:p:_ -- b:q:c }").is_ok());
+    }
+
+    #[test]
+    fn anonymous_subgraphs_are_statements_and_edge_endpoints() {
+        assert!(matches!(
+            process_stmt(_parse("{ a b }", Rule::stmt)),
+            Stmt::Subgraph(_)
+        ));
+        assert!(matches!(
+            process_vertex(_parse("{ a b }", Rule::vertex)),
+            Vertex::S(_)
+        ));
+        assert!(parse("graph { {a b} -- c; { d } -- subgraph s { e } }").is_ok());
+    }
+
+    #[test]
+    fn carriage_returns_are_whitespace() {
+        assert!(parse("graph {\ra -- b\r}").is_ok());
+    }
 }
+
