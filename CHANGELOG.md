@@ -41,4 +41,6 @@
 - **`0.9.9`**
   - fix a bug with anon id of the graphs
   
+- **`0.9.10`**
+  - improved the parser grammar
 
